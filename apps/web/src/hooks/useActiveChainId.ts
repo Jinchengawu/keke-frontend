@@ -1,1 +1,0 @@
-export { useActiveChainId } from './useAccountActiveChain'
