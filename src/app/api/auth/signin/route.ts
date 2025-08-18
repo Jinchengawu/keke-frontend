@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ethers } from 'ethers';
+import { verifyMessage } from 'viem';
 import { createToken } from '@/lib/auth';
 
 // 认证消息模板
@@ -34,9 +34,13 @@ export async function POST(request: NextRequest) {
     const message = AUTH_MSG.replace('<timestamp>', `${timestamp}`);
 
     // 验证签名
-    let signer: string;
+    let isValid: boolean;
     try {
-      signer = ethers.verifyMessage(message, secret);
+      isValid = await verifyMessage({
+        address: wallet as `0x${string}`,
+        message: message,
+        signature: secret as `0x${string}`,
+      });
     } catch (error) {
       return NextResponse.json(
         { error: 'Invalid secret' }, 
@@ -44,8 +48,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 验证钱包地址
-    if (signer.toUpperCase() !== wallet.toUpperCase()) {
+    // 验证签名是否有效
+    if (!isValid) {
       return NextResponse.json(
         { error: 'Wallet and secret do not match' }, 
         { status: 401 }

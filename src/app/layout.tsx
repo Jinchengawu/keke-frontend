@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
 import AntdConfigProvider from "@/components/AntdRegistry";
+import { WagmiProvider } from "@/components/WagmiProvider";
 
 export const metadata: Metadata = {
   title: "RenToken.World - 房租收益RWA平台",
@@ -15,9 +16,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
-        <AntdConfigProvider>
-          {children}
-        </AntdConfigProvider>
+        <WagmiProvider>
+          <AntdConfigProvider>
+            {children}
+          </AntdConfigProvider>
+        </WagmiProvider>
       </body>
     </html>
   );

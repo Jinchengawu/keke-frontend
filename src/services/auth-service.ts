@@ -21,7 +21,7 @@ export type Auth = {
     timestamp: number;
 }
 
-export async function signIn(data: Auth): Promise<string> {
+export async function signIn(data: Auth): Promise<{token: string, expiresAt: string, user: any}> {
     const response = await axios.post(`${BACKEND_URL}/signin`, data);
     return response.data;
 }
