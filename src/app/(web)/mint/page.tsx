@@ -493,9 +493,9 @@ export default function MintPage() {
               <Button 
                 type="primary" 
                 size="large"
-                onClick={() => window.location.href = '/dashboard'}
+                onClick={() => window.location.href = '/mint'}
               >
-                返回仪表板
+                继续铸造
               </Button>
             )}
           </Space>
@@ -507,8 +507,8 @@ export default function MintPage() {
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={[
-          <Button key="dashboard" type="primary" onClick={() => window.location.href = '/dashboard'}>
-            查看仪表板
+          <Button key="mint" type="primary" onClick={() => window.location.href = '/mint'}>
+            继续铸造
           </Button>,
           <Button key="swap" onClick={() => window.location.href = '/swap'}>
             去交易市场

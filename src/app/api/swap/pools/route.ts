@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,12 +51,16 @@ export async function GET(request: NextRequest) {
       }
     ];
 
-    return createAuthResponse(200, '获取流动性池成功', {
-      pools
+    return NextResponse.json({
+      success: true,
+      message: '获取流动性池成功',
+      data: {
+        pools
+      }
     });
 
   } catch (error) {
     console.error('Get pools error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

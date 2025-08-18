@@ -8,8 +8,6 @@
  * 
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
-// 导入JWT类型定义，用于处理JSON Web Token
-import { JWT } from 'commons/models/jwt';
 // 导入配置服务，用于获取应用配置信息
 import ConfigService from './config-service';
 // 从viem库导入必要的功能
@@ -19,8 +17,6 @@ import { mainnet } from 'viem/chains';
 import { Plan } from 'commons/models/plan';
 // 导入ERC20代币标准的ABI(应用程序二进制接口)，用于与ERC20代币合约交互
 import ERC20_ABI from 'commons/services/ERC20.json';
-// 从认证服务导入JWT解析和登录函数
-import { parseJwt, signIn } from './auth-service';
 
 /**
  * 获取钱包客户端实例
@@ -74,56 +70,7 @@ export async function getWallet(): Promise<string> {
     return firstAllowedWallet;
 }
 
-/**
- * 执行Web3钱包登录流程
- * 通过MetaMask钱包签名验证用户身份并获取JWT令牌
- * @returns {Promise<JWT | undefined>} 返回解析后的JWT对象，登录失败则返回undefined
- */
-export async function doLogin(): Promise<JWT | undefined> {
-    // 控制台输出登录开始标记，用于调试流程追踪
-    console.log('doLogin');
-    // 获取当前时间戳，用于防重放攻击
-    const timestamp = Date.now();
-    // 调试输出：步骤0
-    console.log('doLogin0');
-    // 从配置服务获取认证消息模板，用户需要对此消息进行签名
-    const message = ConfigService.getAuthMessage();
-    // 调试输出：步骤1
-    console.log('doLogin1');
-    // 获取用户的钱包地址，这会触发MetaMask连接请求
-    const wallet = await getWallet();
-    // 调试输出：步骤2
-    console.log('doLogin2');
-    // 获取钱包客户端实例
-    const walletClient = getWalletClient();
-    // 调试输出：步骤3
-    console.log('doLogin3');
-    // 调试输出：步骤4
-    console.log('doLogin4');
-    // 使用Viem的signMessage方法对认证消息进行签名，这是身份验证的关键步骤
-    const challenge = await walletClient.signMessage({
-        account: wallet as `0x${string}`,
-        message: message,
-    });
-    // 输出待签名的消息内容，用于调试
-    console.log('message', message);
-    // 调用后端认证服务，传入签名、时间戳和钱包地址进行身份验证
-    // signIn 返回的是一个包含 token、expiresAt、user 等字段的对象
-    const tokenObj = await signIn({
-        secret: challenge,     // 用户的数字签名
-        timestamp,            // 时间戳，防止重放攻击
-        wallet                // 用户钱包地址
-    });
-    // 输出获取到的完整token对象，用于调试
-    console.log('tokenObj', tokenObj);
-    // 只取出JWT字符串部分
-    const token = tokenObj.token;
-    // 将JWT令牌保存到本地存储，用于后续API请求的身份验证
-    localStorage.setItem('token', token);
 
-    // 解析JWT令牌并返回其内容
-    return parseJwt(token);
-}
 
 /**
  * 启动支付流程

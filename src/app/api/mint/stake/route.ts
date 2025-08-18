@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
 import { z } from 'zod';
 
 const createStakeSchema = z.object({
@@ -30,23 +29,9 @@ async function calculateStakeValue(assetId: string, amount: number, lockPeriod: 
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
 
     const body = await request.json();
     const validatedData = createStakeSchema.parse(body);
-
-    // 验证用户KYC状态
-    const userWithKyc = await prisma.users.findUnique({
-      where: { id: user.sub },
-      include: { kyc: true }
-    });
-
-    if (!userWithKyc?.kyc || userWithKyc.kyc.status !== 'approved') {
-      return createAuthResponse(400, '请先完成KYC认证');
-    }
 
     // 计算质押价值
     const calculation = await calculateStakeValue(
@@ -58,7 +43,7 @@ export async function POST(request: NextRequest) {
     // 创建质押记录
     const stake = await prisma.stakes.create({
       data: {
-        userId: user.sub,
+        userId: 'mock_user_id',
         assetId: validatedData.assetId,
         amount: validatedData.amount,
         lockPeriod: validatedData.lockPeriod,
@@ -70,11 +55,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return createAuthResponse(200, '质押订单已创建', {
-      stake: {
-        id: stake.id,
-        ...calculation,
-        status: 'pending'
+    return NextResponse.json({
+      success: true,
+      message: '质押订单已创建',
+      data: {
+        stake: {
+          id: stake.id,
+          ...calculation,
+          status: 'pending'
+        }
       }
     });
 
@@ -82,11 +71,18 @@ export async function POST(request: NextRequest) {
     console.error('Create stake error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
-        errors: error.issues
-      });
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
+        data: {
+          errors: error.issues
+        }
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({
+      success: false,
+      message: '服务器内部错误'
+    }, { status: 500 });
   }
 }

@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
 import { z } from 'zod';
 
 const createRedemptionSchema = z.object({
@@ -65,23 +64,21 @@ function calculateRedemptionValue(assetId: string, tokenAmount: number, isEarlyR
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
-
     const body = await request.json();
     const validatedData = createRedemptionSchema.parse(body);
+    
+    // 使用模拟用户ID
+    const mock_user_id = 'mock_user_123';
 
     const asset = mockAssets.find(a => a.id === validatedData.assetId);
     if (!asset) {
-      return createAuthResponse(404, '资产不存在');
+      return NextResponse.json({ success: false, message: '资产不存在' }, { status: 404 });
     }
 
     const maxRedeemable = validatedData.isEarlyRedeem ? asset.balance : asset.availableAmount;
     
     if (validatedData.tokenAmount > maxRedeemable) {
-      return createAuthResponse(400, '赎回数量超过可用余额');
+      return NextResponse.json({ success: false, message: '赎回数量超过可用余额' }, { status: 400 });
     }
 
     // 计算赎回价值
@@ -94,7 +91,7 @@ export async function POST(request: NextRequest) {
     // 创建赎回申请记录
     const redemption = await prisma.redemptions.create({
       data: {
-        userId: user.sub,
+        userId: mock_user_id,
         assetId: validatedData.assetId,
         tokenAmount: validatedData.tokenAmount,
         baseValue: calculation.baseValue,
@@ -108,8 +105,10 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return createAuthResponse(200, '赎回申请已提交', {
-      redemption: {
+    return NextResponse.json({
+      success: true,
+      message: '赎回申请已提交',
+      data: {
         id: redemption.id,
         ...calculation,
         status: 'pending',
@@ -121,11 +120,13 @@ export async function POST(request: NextRequest) {
     console.error('Create redemption error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
         errors: error.issues
-      });
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

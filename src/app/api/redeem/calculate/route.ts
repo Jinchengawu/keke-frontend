@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const calculateRedemptionSchema = z.object({
@@ -43,13 +42,13 @@ export async function POST(request: NextRequest) {
 
     const asset = mockAssets.find(a => a.id === validatedData.assetId);
     if (!asset) {
-      return createAuthResponse(404, '资产不存在');
+      return NextResponse.json({ success: false, message: '资产不存在' }, { status: 404 });
     }
 
     const maxRedeemable = validatedData.isEarlyRedeem ? asset.balance : asset.availableAmount;
     
     if (validatedData.tokenAmount > maxRedeemable) {
-      return createAuthResponse(400, `超过可赎回数量，最大可赎回: ${maxRedeemable}`);
+      return NextResponse.json({ success: false, message: `超过可赎回数量，最大可赎回: ${maxRedeemable}` }, { status: 400 });
     }
 
     // 计算基础赎回价值
@@ -69,7 +68,10 @@ export async function POST(request: NextRequest) {
     const estimatedDays = validatedData.isEarlyRedeem ? 1 : 3;
     const completionDate = new Date(Date.now() + estimatedDays * 24 * 60 * 60 * 1000);
 
-    return createAuthResponse(200, '计算成功', {
+    return NextResponse.json({
+      success: true,
+      message: '计算成功',
+      data: {
       calculation: {
         tokenAmount: validatedData.tokenAmount,
         baseValue,
@@ -81,17 +83,20 @@ export async function POST(request: NextRequest) {
         estimatedCompletionDate: completionDate,
         processingDays: estimatedDays
       }
+      }
     });
 
   } catch (error) {
     console.error('Calculate redemption error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
         errors: error.issues
-      });
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

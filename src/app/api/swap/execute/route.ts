@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
 import { z } from 'zod';
 
 const executeSwapSchema = z.object({
@@ -55,19 +54,18 @@ async function getQuote(fromToken: string, toToken: string, amount: number) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
 
     const body = await request.json();
     const validatedData = executeSwapSchema.parse(body);
 
     // 验证用户余额
-    const fromTokenBalance = await getUserBalance(user.sub, validatedData.fromToken);
+    const fromTokenBalance = await getUserBalance('mock_user_id', validatedData.fromToken);
 
     if (fromTokenBalance < validatedData.fromAmount) {
-      return createAuthResponse(400, '余额不足');
+      return NextResponse.json({
+        success: false,
+        message: '余额不足'
+      }, { status: 400 });
     }
 
     // 获取最新报价
@@ -79,7 +77,10 @@ export async function POST(request: NextRequest) {
 
     // 检查滑点容忍度
     if (quote.outputAmount < validatedData.minReceived) {
-      return createAuthResponse(400, '滑点超过容忍范围');
+      return NextResponse.json({
+        success: false,
+        message: '滑点超过容忍范围'
+      }, { status: 400 });
     }
 
     // 模拟区块链交易
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     // 创建交换记录
     const swap = await prisma.swaps.create({
       data: {
-        userId: user.sub,
+        userId: 'mock_user_id',
         fromToken: validatedData.fromToken,
         toToken: validatedData.toToken,
         fromAmount: validatedData.fromAmount,
@@ -101,14 +102,18 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return createAuthResponse(200, '交易成功', {
-      swap: {
-        id: swap.id,
-        transactionHash,
-        fromAmount: validatedData.fromAmount,
-        toAmount: quote.outputAmount,
-        fee: quote.fee,
-        completedAt: new Date()
+    return NextResponse.json({
+      success: true,
+      message: '交易成功',
+      data: {
+        swap: {
+          id: swap.id,
+          transactionHash,
+          fromAmount: validatedData.fromAmount,
+          toAmount: quote.outputAmount,
+          fee: quote.fee,
+          completedAt: new Date()
+        }
       }
     });
 
@@ -116,11 +121,18 @@ export async function POST(request: NextRequest) {
     console.error('Execute swap error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
-        errors: error.issues
-      });
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
+        data: {
+          errors: error.issues
+        }
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({
+      success: false,
+      message: '服务器内部错误'
+    }, { status: 500 });
   }
 }

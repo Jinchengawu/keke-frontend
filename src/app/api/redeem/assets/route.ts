@@ -1,12 +1,7 @@
-import { NextRequest } from 'next/server';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
 
     // 模拟用户持有的可赎回资产
     const redeemableAssets = [
@@ -70,18 +65,25 @@ export async function GET(request: NextRequest) {
       sum + (asset.lockedAmount * asset.currentPrice), 0
     );
 
-    return createAuthResponse(200, '获取可赎回资产成功', {
-      summary: {
-        totalValue,
-        availableValue,
-        lockedValue,
-        totalAssets: redeemableAssets.length
-      },
-      assets: redeemableAssets
+    return NextResponse.json({
+      success: true,
+      message: '获取可赎回资产成功',
+      data: {
+        summary: {
+          totalValue,
+          availableValue,
+          lockedValue,
+          totalAssets: redeemableAssets.length
+        },
+        assets: redeemableAssets
+      }
     });
 
   } catch (error) {
     console.error('Get redeemable assets error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({
+      success: false,
+      message: '服务器内部错误'
+    }, { status: 500 });
   }
 }

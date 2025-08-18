@@ -1,12 +1,7 @@
-import { NextRequest } from 'next/server';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
 
     // 模拟用户余额数据
     const mockBalances = [
@@ -38,13 +33,20 @@ export async function GET(request: NextRequest) {
 
     const totalValue = balancesWithDetails.reduce((sum, balance) => sum + balance.value, 0);
 
-    return createAuthResponse(200, '获取用户余额成功', {
-      totalValue,
-      balances: balancesWithDetails
+    return NextResponse.json({
+      success: true,
+      message: '获取用户余额成功',
+      data: {
+        totalValue,
+        balances: balancesWithDetails
+      }
     });
 
   } catch (error) {
     console.error('Get user balances error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({
+      success: false,
+      message: '服务器内部错误'
+    }, { status: 500 });
   }
 }

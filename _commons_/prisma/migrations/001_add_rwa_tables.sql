@@ -1,22 +1,3 @@
--- CreateTable for KYC
-CREATE TABLE "kyc" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
-    "phone" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "idNumber" TEXT NOT NULL,
-    "walletAddress" TEXT NOT NULL,
-    "documents" JSONB DEFAULT '[]',
-    "status" TEXT NOT NULL DEFAULT 'pending',
-    "submittedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "reviewedAt" TIMESTAMP(3),
-    "reviewComments" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "kyc_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateTable for Stakes
 CREATE TABLE "stake" (
     "id" TEXT NOT NULL,
@@ -110,12 +91,9 @@ CREATE TABLE "redemption" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "kyc_userId_key" ON "kyc"("userId");
-CREATE UNIQUE INDEX "kyc_walletAddress_key" ON "kyc"("walletAddress");
 CREATE UNIQUE INDEX "tokenBalance_userId_assetId_key" ON "tokenBalance"("userId", "assetId");
 
 -- AddForeignKey
-ALTER TABLE "kyc" ADD CONSTRAINT "kyc_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "stake" ADD CONSTRAINT "stake_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "tokenBalance" ADD CONSTRAINT "tokenBalance_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "swap" ADD CONSTRAINT "swap_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

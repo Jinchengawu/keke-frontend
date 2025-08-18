@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
 import { z } from 'zod';
 
 const mintTokenSchema = z.object({
@@ -9,25 +8,23 @@ const mintTokenSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
-
     const body = await request.json();
     const validatedData = mintTokenSchema.parse(body);
+    
+    // 使用模拟用户ID
+    const mock_user_id = 'mock_user_123';
 
     // 获取质押记录
     const stake = await prisma.stakes.findFirst({
       where: {
         id: validatedData.stakeId,
-        userId: user.sub,
+        userId: mock_user_id,
         status: 'pending'
       }
     });
 
     if (!stake) {
-      return createAuthResponse(404, '质押记录不存在或已处理');
+      return NextResponse.json({ success: false, message: '质押记录不存在或已处理' }, { status: 404 });
     }
 
     // 模拟区块链交易确认
@@ -46,7 +43,7 @@ export async function POST(request: NextRequest) {
     // 创建代币余额记录
     const existingBalance = await prisma.tokenBalances.findFirst({
       where: {
-        userId: user.sub,
+        userId: mock_user_id,
         assetId: stake.assetId
       }
     });
@@ -61,15 +58,17 @@ export async function POST(request: NextRequest) {
     } else {
       await prisma.tokenBalances.create({
         data: {
-          userId: user.sub,
+          userId: mock_user_id,
           assetId: stake.assetId,
           balance: stake.tokenAmount
         }
       });
     }
 
-    return createAuthResponse(200, '代币铸造成功', {
-      result: {
+    return NextResponse.json({
+      success: true,
+      message: '代币铸造成功',
+      data: {
         stakeId: stake.id,
         tokenAmount: stake.tokenAmount,
         transactionHash,
@@ -81,11 +80,13 @@ export async function POST(request: NextRequest) {
     console.error('Mint tokens error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
         errors: error.issues
-      });
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

@@ -12,31 +12,25 @@
 'use client'
 
 import { Button, message, Tooltip } from 'antd'
-import { WalletOutlined, DisconnectOutlined, LoginOutlined } from '@ant-design/icons'
+import { WalletOutlined, DisconnectOutlined } from '@ant-design/icons'
 import { useWeb3 } from '@/hooks/useWeb3'
-import { useState } from 'react'
 
 interface WalletConnectProps {
-  showAuth?: boolean // 是否显示认证按钮
   size?: 'small' | 'middle' | 'large'
 }
 
 /**
  * 钱包连接组件
- * 提供连接钱包、断开连接和认证功能
+ * 提供连接钱包、断开连接功能
  */
-export default function WalletConnect({ showAuth = false, size = 'middle' }: WalletConnectProps) {
+export default function WalletConnect({ size = 'middle' }: WalletConnectProps) {
   const {
     address,
     isConnected,
     isConnecting,
     connectWallet,
     disconnect,
-    doLogin,
-    isWalletConnected,
   } = useWeb3()
-
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
 
   // 处理钱包连接
   const handleConnect = async () => {
@@ -53,33 +47,10 @@ export default function WalletConnect({ showAuth = false, size = 'middle' }: Wal
   const handleDisconnect = () => {
     try {
       disconnect()
-      localStorage.removeItem('token') // 清除认证token
       message.success('钱包已断开连接')
     } catch (error) {
       console.error('断开连接失败:', error)
       message.error('断开连接失败')
-    }
-  }
-
-  // 处理认证
-  const handleAuth = async () => {
-    if (!isWalletConnected) {
-      message.warning('请先连接钱包')
-      return
-    }
-
-    setIsAuthenticating(true)
-    try {
-      const jwt = await doLogin()
-      if (jwt) {
-        message.success('认证成功!')
-        console.log('JWT:', jwt)
-      }
-    } catch (error) {
-      console.error('认证失败:', error)
-      message.error('认证失败，请重试')
-    } finally {
-      setIsAuthenticating(false)
     }
   }
 
@@ -102,18 +73,6 @@ export default function WalletConnect({ showAuth = false, size = 'middle' }: Wal
             {formatAddress(address)}
           </Button>
         </Tooltip>
-        
-        {showAuth && (
-          <Button
-            type="primary"
-            icon={<LoginOutlined />}
-            size={size}
-            loading={isAuthenticating}
-            onClick={handleAuth}
-          >
-            认证
-          </Button>
-        )}
         
         <Button
           type="default"

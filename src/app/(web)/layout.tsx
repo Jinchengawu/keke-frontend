@@ -2,11 +2,11 @@ import { Sidebar } from "@/components/Sidebar";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Poseidon - Dashboard",
-  description: "Trading bot platform dashboard",
+  title: "Poseidon - Web3 DeFi Platform",
+  description: "Web3 DeFi platform for token swapping, minting and redemption",
 };
 
-export default function DashboardLayout({
+export default function WebLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

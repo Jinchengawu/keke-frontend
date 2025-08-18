@@ -11,13 +11,11 @@
 
 'use client'
 
-import { useAccount, useConnect, useDisconnect, useSignMessage, useWriteContract } from 'wagmi'
+import { useAccount, useConnect, useDisconnect, useWriteContract } from 'wagmi'
 import { metaMask } from 'wagmi/connectors'
 import { useCallback } from 'react'
 import { Plan } from 'commons/models/plan'
 import ConfigService from '@/services/config-service'
-import { signIn, parseJwt } from '@/services/auth-service'
-import { JWT } from 'commons/models/jwt'
 import ERC20_ABI from 'commons/services/ERC20.json'
 
 /**
@@ -42,51 +40,7 @@ export function useWalletConnection() {
   }
 }
 
-/**
- * Web3认证Hook
- * 处理基于签名的用户认证流程
- */
-export function useWeb3Auth() {
-  const { address } = useAccount()
-  const { signMessageAsync } = useSignMessage()
 
-  const doLogin = useCallback(async (): Promise<JWT | undefined> => {
-    if (!address) {
-      throw new Error('Wallet not connected')
-    }
-
-    console.log('doLogin')
-    const timestamp = Date.now()
-    const message = ConfigService.getAuthMessage()
-
-    try {
-      console.log('Signing message:', message)
-      const challenge = await signMessageAsync({
-        message: message,
-      })
-
-      const tokenObj = await signIn({
-        secret: challenge,
-        timestamp,
-        wallet: address
-      })
-
-      console.log('tokenObj', tokenObj)
-      const token = tokenObj.token
-      localStorage.setItem('token', token)
-
-      return parseJwt(token)
-    } catch (error) {
-      console.error('Login failed:', error)
-      throw error
-    }
-  }, [address, signMessageAsync])
-
-  return {
-    doLogin,
-    isWalletConnected: !!address,
-  }
-}
 
 /**
  * ERC20代币交互Hook
@@ -126,12 +80,10 @@ export function useERC20() {
  */
 export function useWeb3() {
   const wallet = useWalletConnection()
-  const auth = useWeb3Auth()
   const erc20 = useERC20()
 
   return {
     ...wallet,
-    ...auth,
     ...erc20,
   }
 }

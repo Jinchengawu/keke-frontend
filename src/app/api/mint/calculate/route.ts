@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const calculateSchema = z.object({
@@ -39,7 +38,7 @@ export async function POST(request: NextRequest) {
 
     const asset = await getAssetById(validatedData.assetId);
     if (!asset) {
-      return createAuthResponse(404, '资产不存在');
+      return NextResponse.json({ success: false, message: '资产不存在' }, { status: 404 });
     }
 
     const baseTokens = validatedData.amount * asset.tokenRatio;
@@ -59,7 +58,10 @@ export async function POST(request: NextRequest) {
     const annualYield = (validatedData.amount * asset.yieldRate) / 100;
     const expectedYield = (annualYield * validatedData.lockPeriod) / 12;
 
-    return createAuthResponse(200, '计算成功', {
+    return NextResponse.json({
+      success: true,
+      message: '计算成功',
+      data: {
       calculation: {
         stakeAmount: validatedData.amount,
         baseTokens,
@@ -70,17 +72,20 @@ export async function POST(request: NextRequest) {
         lockPeriod: validatedData.lockPeriod,
         unlockDate: new Date(Date.now() + validatedData.lockPeriod * 30 * 24 * 60 * 60 * 1000)
       }
+      }
     });
 
   } catch (error) {
     console.error('Calculate stake value error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
         errors: error.issues
-      });
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

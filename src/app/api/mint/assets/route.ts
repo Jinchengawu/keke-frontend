@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,12 +56,16 @@ export async function GET(request: NextRequest) {
 
     const activeAssets = assets.filter(asset => asset.status === 'active');
 
-    return createAuthResponse(200, '获取可质押资产成功', {
-      assets: activeAssets
-    });
+    return NextResponse.json({
+       success: true,
+       message: '获取可质押资产成功',
+       data: {
+         assets: activeAssets
+       }
+     });
 
   } catch (error) {
     console.error('Get stakeable assets error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

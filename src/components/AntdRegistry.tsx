@@ -15,7 +15,7 @@ export default function AntdConfigProvider({ children }: AntdConfigProviderProps
       <ConfigProvider 
         theme={rwaTheme}
         locale={zhCN}
-        autoInsertSpaceInButton={false}
+        button={{ autoInsertSpace: false }}
       >
         {children}
       </ConfigProvider>

@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,12 +68,16 @@ export async function GET(request: NextRequest) {
 
     const activeTokens = tokens.filter(token => token.isActive);
 
-    return createAuthResponse(200, '获取代币列表成功', {
-      tokens: activeTokens
-    });
+    return NextResponse.json({
+       success: true,
+       message: '获取代币列表成功',
+       data: {
+         tokens: activeTokens
+       }
+     });
 
   } catch (error) {
     console.error('Get tokens error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }

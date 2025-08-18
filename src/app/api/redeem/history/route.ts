@@ -1,12 +1,7 @@
-import { NextRequest } from 'next/server';
-import { verifyAuth, createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyAuth(request);
-    if (!user) {
-      return createAuthResponse(401, '未授权访问');
-    }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -16,7 +11,7 @@ export async function GET(request: NextRequest) {
     const mockHistory = [
       {
         id: 'redeem_1',
-        userId: user.sub,
+        userId: 'mock_user_id',
         assetId: '2',
         tokenAmount: 100,
         baseValue: 8925,
@@ -32,7 +27,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'redeem_2',
-        userId: user.sub,
+        userId: 'mock_user_id',
         assetId: '1',
         tokenAmount: 50,
         baseValue: 6290,
@@ -48,7 +43,7 @@ export async function GET(request: NextRequest) {
       },
       {
         id: 'redeem_3',
-        userId: user.sub,
+        userId: 'mock_user_id',
         assetId: '3',
         tokenAmount: 25,
         baseValue: 1685,
@@ -81,13 +76,20 @@ export async function GET(request: NextRequest) {
       asset: assets.find(a => a.id === redemption.assetId)
     }));
 
-    return createAuthResponse(200, '获取赎回历史成功', {
-      total: filteredHistory.length,
-      history: historyWithAssets
+    return NextResponse.json({
+      success: true,
+      message: '获取赎回历史成功',
+      data: {
+        total: filteredHistory.length,
+        history: historyWithAssets
+      }
     });
 
   } catch (error) {
     console.error('Get redemption history error:', error);
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({
+      success: false,
+      message: '服务器内部错误'
+    }, { status: 500 });
   }
 }

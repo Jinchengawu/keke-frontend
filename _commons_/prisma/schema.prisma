@@ -62,7 +62,6 @@ model users {
   activationDate DateTime
   
   // 新增RWA相关字段
-  kyc            kyc?
   stakes         stakes[]
   tokenBalances  tokenBalances[]
   swaps          swaps[]
@@ -70,23 +69,6 @@ model users {
   redemptions    redemptions[]
 }
 
-model kyc {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId         String   @unique @db.ObjectId
-  phone          String
-  email          String
-  idNumber       String
-  walletAddress  String   @unique
-  documents      Json     @default("[]")
-  status         String   @default("pending") // pending, approved, rejected
-  submittedAt    DateTime @default(now())
-  reviewedAt     DateTime?
-  reviewComments String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  
-  user users @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
 model stakes {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId

@@ -1,5 +1,4 @@
-import { NextRequest } from 'next/server';
-import { createAuthResponse } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 const quoteSchema = z.object({
@@ -33,7 +32,7 @@ export async function POST(request: NextRequest) {
     const toToken = mockTokens.find(t => t.id === validatedData.toToken);
 
     if (!fromToken || !toToken) {
-      return createAuthResponse(400, '代币不存在');
+      return NextResponse.json({ success: false, message: '代币不存在' }, { status: 400 });
     }
 
     // 简化的价格计算（实际应该基于流动性池）
@@ -44,7 +43,10 @@ export async function POST(request: NextRequest) {
     const outputAmount = validatedData.amount * rate * (1 - fee) * (1 - slippage);
     const priceImpact = slippage * 100;
 
-    return createAuthResponse(200, '获取报价成功', {
+    return NextResponse.json({
+      success: true,
+      message: '获取报价成功',
+      data: {
       quote: {
         inputAmount: validatedData.amount,
         outputAmount,
@@ -56,17 +58,20 @@ export async function POST(request: NextRequest) {
         route: [fromToken.id, toToken.id],
         estimatedGas: '0.005 ETH'
       }
+      }
     });
 
   } catch (error) {
     console.error('Get quote error:', error);
     
     if (error instanceof z.ZodError) {
-      return createAuthResponse(400, '数据验证失败', {
+      return NextResponse.json({
+        success: false,
+        message: '数据验证失败',
         errors: error.issues
-      });
+      }, { status: 400 });
     }
     
-    return createAuthResponse(500, '服务器内部错误');
+    return NextResponse.json({ success: false, message: '服务器内部错误' }, { status: 500 });
   }
 }
