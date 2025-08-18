@@ -2,7 +2,7 @@
  * @Author: dreamworks.cnn@gmail.com
  * @Date: 2025-08-18 15:00:00
  * @LastEditors: dreamworks.cnn@gmail.com
- * @LastEditTime: 2025-08-18 15:00:00
+ * @LastEditTime: 2025-08-18 23:38:55
  * @FilePath: /keke-frontend/src/app/(web)/wallet-demo/page.tsx
  * @Description: 钱包功能演示页面，展示新的wagmi hooks的使用
  * 
@@ -45,7 +45,7 @@ export default function WalletDemoPage() {
             <Paragraph>
               使用新的 <Text code>useWeb3</Text> Hook 连接和管理钱包状态：
             </Paragraph>
-            <WalletConnect showAuth={true} size="large" />
+            <WalletConnect size="large" />
             {isConnected && address && (
               <Alert
                 message="钱包已连接"
