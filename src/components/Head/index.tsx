@@ -1,15 +1,33 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button, Dropdown, Space } from 'antd'
-import { DownOutlined, GlobalOutlined, MenuOutlined, LogoutOutlined, WalletOutlined, CopyOutlined } from '@ant-design/icons'
+import { Button } from '@/components/ui/button'
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu'
+import { useToast } from '@/hooks/use-toast'
+import { 
+  ChevronDown, 
+  Globe, 
+  Menu, 
+  LogOut, 
+  Wallet, 
+  Copy,
+  Twitter,
+  ExternalLink
+} from 'lucide-react'
 import { useWeb3 } from '@/hooks/useWeb3'
 import Link from 'next/link'
+import { cn } from '@/lib/utils'
 import './index.css'
 
 const Head: React.FC = () => {
   const { address, isConnected, isConnecting, connectWallet, disconnect } = useWeb3()
   const [currentLang, setCurrentLang] = useState('繁體中文')
+  const { toast } = useToast()
 
   // 语言选项
   const languageItems = [
@@ -34,10 +52,10 @@ const Head: React.FC = () => {
     { key: 'ranking', label: '赎回', href: '/redeem' },
     { key: 'advanced', label: '农场', href: '/' },
     { key: 'create', label: '创建代币', href: '/create-token' },
-    ]
+  ]
 
   // 处理语言切换
-  const handleLanguageChange = ({ key }: { key: string }) => {
+  const handleLanguageChange = (key: string) => {
     const lang = languageItems.find(item => item.key === key)
     if (lang) {
       setCurrentLang(lang.label)
@@ -49,161 +67,154 @@ const Head: React.FC = () => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
   }
 
-  // 复制地址到剪贴板
-  const handleCopyAddress = async () => {
+  // 复制地址
+  const copyAddress = async () => {
     if (address) {
       try {
         await navigator.clipboard.writeText(address)
-        // 可以添加成功提示
-        console.log('地址已复制到剪贴板')
-      } catch (error) {
-        console.error('复制失败:', error)
+        toast({
+          title: "地址已复制",
+          description: "钱包地址已复制到剪贴板",
+        })
+      } catch (err) {
+        console.error('Failed to copy address:', err)
+        toast({
+          title: "复制失败",
+          description: "无法复制地址到剪贴板",
+          variant: "destructive",
+        })
       }
     }
   }
 
-  // 断开钱包连接
-  const handleDisconnect = () => {
-    disconnect()
-  }
-
-  // 钱包菜单项
-  const walletMenuItems = [
-    {
-      key: 'address',
-      label: (
-        <div className="flex items-center space-x-2 py-1">
-          <WalletOutlined />
-          <span className="text-gray-600 text-sm">{address}</span>
-        </div>
-      ),
-      disabled: true,
-    },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'copy',
-      label: (
-        <div className="flex items-center space-x-2">
-          <CopyOutlined />
-          <span>复制地址</span>
-        </div>
-      ),
-      onClick: handleCopyAddress,
-    },
-    {
-      key: 'disconnect',
-      label: (
-        <div className="flex items-center space-x-2 text-red-500">
-          <LogoutOutlined />
-          <span>断开连接</span>
-        </div>
-      ),
-      onClick: handleDisconnect,
-    },
-  ]
-
   return (
-    <header className="head-container h-16 w100 flex items-center justify-between px-6">
-      {/* 左侧：Logo + 导航菜单 */}
-      <div className="flex items-center space-x-8">
+    <header className="header-container">
+      <div className="header-content">
         {/* Logo */}
-        <div className="logo-container flex items-center space-x-2 cursor-pointer">
-          <div className="logo-icon w-8 h-8 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-lg">F</span>
-          </div>
-          <span className="logo-text text-white font-bold text-xl">FOUR</span>
+        <div className="logo-section">
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="logo-icon">🏠</div>
+            <div className="logo-text">
+              <div className="logo-title">RenToken</div>
+              <div className="logo-subtitle">房租收益RWA平台</div>
+            </div>
+          </Link>
         </div>
 
-        {/* 导航菜单 - 桌面版 */}
-        <nav className="nav-menu hidden md:flex items-center space-x-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="nav-item text-gray-300 hover:text-white text-sm font-medium"
-            >
-              {item.label}
-            </Link>
-          ))}
+        {/* 桌面端导航 */}
+        <nav className="desktop-nav">
+          <div className="nav-links">
+            {navItems.map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="nav-link"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </nav>
 
-        {/* 移动端菜单按钮 */}
-        <Button
-          type="text"
-          icon={<MenuOutlined />}
-          className="mobile-menu-button md:hidden"
-        />
-      </div>
+        {/* 右侧操作区 */}
+        <div className="header-actions">
+          {/* 语言切换 */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="language-dropdown">
+                <Globe className="w-4 h-4" />
+                <span className="hidden md:inline">{currentLang}</span>
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {languageItems.map((item) => (
+                <DropdownMenuItem
+                  key={item.key}
+                  onClick={() => handleLanguageChange(item.key)}
+                  className={cn(
+                    currentLang === item.label && "bg-accent"
+                  )}
+                >
+                  {item.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-      {/* 右侧：语言选择 + 连接钱包按钮 */}
-      <div className="flex items-center space-x-4">
-        {/* 语言选择 */}
-        <Dropdown
-          menu={{
-            items: languageItems,
-            onClick: handleLanguageChange,
-          }}
-          trigger={['click']}
-        >
-          <Button
-            type="text"
-            className="language-dropdown text-gray-300 hover:text-white border-none bg-transparent"
-            icon={<GlobalOutlined />}
-          >
-            <Space>
-              <span className="hidden sm:inline">{currentLang}</span>
-              <DownOutlined className="text-xs" />
-            </Space>
-          </Button>
-        </Dropdown>
-
-        {/* 连接钱包按钮/菜单 */}
-        <div className="relative">
+          {/* 钱包连接 */}
           {!isConnected ? (
-            // 未连接状态：显示连接按钮
-            <Button
-              type="primary"
-              size="middle"
-              loading={isConnecting}
+            <Button 
               onClick={connectWallet}
-              className="wallet-button border-none rounded-lg px-6 font-medium"
-              style={{
-                background: 'linear-gradient(90deg, #059669 0%, #2563eb 100%)',
-              }}
+              disabled={isConnecting}
+              className="connect-wallet-btn"
             >
-              连接钱包
+              <Wallet className="w-4 h-4" />
+              {isConnecting ? '连接中...' : '连接钱包'}
             </Button>
           ) : (
-            // 已连接状态：显示下拉菜单
-            <Dropdown
-              menu={{
-                items: walletMenuItems,
-              }}
-              trigger={['click']}
-              placement="bottomRight"
-            >
-              <Button
-                type="primary"
-                size="middle"
-                className="wallet-button border-none rounded-lg px-6 font-medium"
-                style={{
-                  background: 'linear-gradient(90deg, #10b981 0%, #3b82f6 100%)',
-                }}
-              >
-                <Space>
-                  {formatAddress(address || '')}
-                  <DownOutlined className="text-xs" />
-                </Space>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="wallet-dropdown">
+                  <Wallet className="w-4 h-4" />
+                  <span className="hidden sm:inline">
+                    {formatAddress(address || '')}
+                  </span>
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={copyAddress}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  复制地址
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => disconnect()}>
+                  <LogOut className="w-4 h-4 mr-2" />
+                  断开连接
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* 移动端菜单 */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="mobile-menu-btn md:hidden">
+                <Menu className="w-5 h-5" />
               </Button>
-            </Dropdown>
-          )}
-          
-          {/* 连接状态指示器 */}
-          {isConnected && (
-            <div className="connection-indicator"></div>
-          )}
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {navItems.map((item) => (
+                <DropdownMenuItem key={item.key} asChild>
+                  <Link href={item.href}>
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* 页面标识和社交链接 */}
+      <div className="header-footer">
+        <div className="page-info">
+          <span className="page-badge">
+            🚀 房产租金收益数字化平台
+          </span>
+        </div>
+        
+        <div className="social-links">
+          <Button variant="ghost" size="sm" asChild>
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              <Twitter className="w-4 h-4" />
+            </a>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <a href="#" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          </Button>
         </div>
       </div>
     </header>

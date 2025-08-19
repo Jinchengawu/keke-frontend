@@ -1,37 +1,51 @@
 'use client';
 
 import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
-  Card, 
-  Row, 
-  Col, 
-  Button, 
-  Input, 
   Select, 
-  Typography, 
-  Space, 
-  Alert, 
-  Statistic,
-  Table,
-  Modal,
-  Form,
-  Progress,
-  Tag,
-  Steps,
-  message
-} from 'antd';
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { 
-  DollarOutlined,
-  HomeOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  WarningOutlined,
-  LockOutlined,
-  UnlockOutlined
-} from '@ant-design/icons';
-
-const { Title, Text, Paragraph } = Typography;
-const { Option } = Select;
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  DollarSign,
+  Home,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Lock,
+  Unlock,
+  Calendar,
+  TrendingDown,
+  ArrowRight
+} from 'lucide-react';
 
 interface RedeemableAsset {
   id: string;
@@ -49,529 +63,548 @@ interface RedeemableAsset {
 
 interface RedemptionRequest {
   id: string;
-  tokenAmount: number;
-  underlyingValue: number;
+  assetId: string;
+  amount: number;
+  estimatedValue: number;
   requestDate: Date;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  estimatedCompletion: Date;
-  transactionHash?: string;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  isEarlyWithdrawal: boolean;
+  penaltyAmount: number;
 }
 
 export default function RedeemPage() {
-  const [selectedAsset, setSelectedAsset] = useState<RedeemableAsset | null>(null);
-  const [redeemAmount, setRedeemAmount] = useState<number>(0);
-  const [redeemType, setRedeemType] = useState<'normal' | 'early'>('normal');
-  const [currentStep, setCurrentStep] = useState(0);
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('assets');
   const [loading, setLoading] = useState(false);
-  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [redeemModalOpen, setRedeemModalOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<RedeemableAsset | null>(null);
+  const [redeemAmount, setRedeemAmount] = useState(0);
 
-  // 模拟用户的可赎回资产
-  const redeemableAssets: RedeemableAsset[] = [
+  const [redeemableAssets] = useState<RedeemableAsset[]>([
     {
-      id: '1',
+      id: 'nyc-rwa-1',
       tokenSymbol: 'NYC-RWA',
       tokenName: '纽约房产代币',
       balance: 850.30,
-      lockedAmount: 500.00,
-      availableAmount: 350.30,
-      underlyingAsset: '曼哈顿豪华公寓A座',
+      lockedAmount: 650.30,
+      availableAmount: 200.00,
+      underlyingAsset: '曼哈顿豪华公寓',
       redemptionRatio: 125.80, // 1 token = $125.80
-      lockEndDate: new Date('2024-12-31'),
-      penaltyRate: 0.15, // 15% penalty for early withdrawal
+      lockEndDate: new Date('2024-06-15'),
+      penaltyRate: 0.05, // 5% penalty for early withdrawal
       isLocked: true
     },
     {
-      id: '2',
+      id: 'london-rwa-1',
       tokenSymbol: 'LON-RWA',
       tokenName: '伦敦房产代币',
       balance: 420.15,
       lockedAmount: 0,
       availableAmount: 420.15,
-      underlyingAsset: '伦敦市中心办公楼',
+      underlyingAsset: '肯辛顿传统别墅',
       redemptionRatio: 89.25,
-      lockEndDate: new Date('2024-06-15'),
-      penaltyRate: 0,
+      lockEndDate: new Date('2024-01-20'),
+      penaltyRate: 0.03,
       isLocked: false
     },
     {
-      id: '3',
+      id: 'tokyo-rwa-1',
       tokenSymbol: 'TKY-RWA',
       tokenName: '东京房产代币',
       balance: 1250.75,
       lockedAmount: 800.00,
       availableAmount: 450.75,
-      underlyingAsset: '东京涩谷商业综合体',
+      underlyingAsset: '涩谷商业大厦',
       redemptionRatio: 67.40,
-      lockEndDate: new Date('2025-03-20'),
-      penaltyRate: 0.12,
+      lockEndDate: new Date('2024-09-30'),
+      penaltyRate: 0.04,
       isLocked: true
     }
-  ];
+  ]);
 
-  // 模拟历史赎回记录
-  const redemptionHistory: RedemptionRequest[] = [
+  const [redemptionHistory] = useState<RedemptionRequest[]>([
     {
-      id: '1',
-      tokenAmount: 100,
-      underlyingValue: 8925,
+      id: 'redeem-001',
+      assetId: 'london-rwa-1',
+      amount: 50,
+      estimatedValue: 4462.50,
       requestDate: new Date('2024-01-15'),
       status: 'completed',
-      estimatedCompletion: new Date('2024-01-17'),
-      transactionHash: '0x1234...5678'
+      isEarlyWithdrawal: false,
+      penaltyAmount: 0
     },
     {
-      id: '2',
-      tokenAmount: 50,
-      underlyingValue: 6370,
-      requestDate: new Date('2024-01-20'),
+      id: 'redeem-002',
+      assetId: 'nyc-rwa-1',
+      amount: 25,
+      estimatedValue: 3145.00,
+      requestDate: new Date('2024-01-10'),
       status: 'processing',
-      estimatedCompletion: new Date('2024-01-22')
+      isEarlyWithdrawal: true,
+      penaltyAmount: 157.25
     }
-  ];
+  ]);
 
-  const steps = [
-    {
-      title: '选择资产',
-      description: '选择要赎回的代币',
-      icon: <LockOutlined />
-    },
-    {
-      title: '设置数量',
-      description: '输入赎回数量',
-      icon: <DollarOutlined />
-    },
-    {
-      title: '确认赎回',
-      description: '确认赎回信息',
-      icon: <CheckCircleOutlined />
-    },
-    {
-      title: '处理中',
-      description: '等待处理完成',
-      icon: <ClockCircleOutlined />
-    }
-  ];
-
-  const calculateRedemptionValue = (amount: number, asset: RedeemableAsset, isEarly: boolean) => {
-    if (!amount || !asset) return 0;
-    
-    let value = amount * asset.redemptionRatio;
-    
-    if (isEarly && asset.isLocked) {
-      value = value * (1 - asset.penaltyRate);
-    }
-    
-    return value;
-  };
-
-  const handleAssetSelect = (assetId: string) => {
-    const asset = redeemableAssets.find(a => a.id === assetId);
-    setSelectedAsset(asset || null);
+  const handleRedeemRequest = (asset: RedeemableAsset) => {
+    setSelectedAsset(asset);
     setRedeemAmount(0);
-    setRedeemType('normal');
+    setRedeemModalOpen(true);
   };
 
-  const handleRedeemTypeChange = (type: 'normal' | 'early') => {
-    setRedeemType(type);
+  const calculateRedemptionValue = (asset: RedeemableAsset, amount: number) => {
+    const baseValue = amount * asset.redemptionRatio;
+    const isEarlyWithdrawal = asset.isLocked && new Date() < asset.lockEndDate;
+    const penalty = isEarlyWithdrawal ? baseValue * asset.penaltyRate : 0;
+    return {
+      baseValue,
+      penalty,
+      netValue: baseValue - penalty,
+      isEarlyWithdrawal
+    };
   };
 
-  const handleConfirmRedeem = () => {
-    setConfirmModalVisible(true);
-  };
+  const handleConfirmRedemption = async () => {
+    if (!selectedAsset || !redeemAmount) {
+      toast({
+        title: "参数错误",
+        description: "请选择资产并输入赎回数量",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  const handleSubmitRedemption = async () => {
+    if (redeemAmount > selectedAsset.availableAmount) {
+      toast({
+        title: "数量超限",
+        description: "赎回数量不能超过可用余额",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      // 模拟提交赎回请求
+      // 模拟赎回流程
       await new Promise(resolve => setTimeout(resolve, 2000));
-      message.success('赎回请求已提交');
-      setCurrentStep(3);
-      setConfirmModalVisible(false);
+      
+      const { netValue, isEarlyWithdrawal, penalty } = calculateRedemptionValue(selectedAsset, redeemAmount);
+      
+      toast({
+        title: "赎回请求已提交",
+        description: `将获得 $${netValue.toFixed(2)}${isEarlyWithdrawal ? ` (扣除 $${penalty.toFixed(2)} 提前赎回费用)` : ''}`,
+      });
+      
+      setRedeemModalOpen(false);
+      setSelectedAsset(null);
+      setRedeemAmount(0);
     } catch (error) {
-      message.error('提交失败，请重试');
+      toast({
+        title: "赎回失败",
+        description: "提交赎回请求时发生错误，请重试",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const getStatusTag = (status: string) => {
-    const statusMap = {
-      pending: { color: 'default', text: '待处理' },
-      processing: { color: 'processing', text: '处理中' },
-      completed: { color: 'success', text: '已完成' },
-      failed: { color: 'error', text: '失败' }
-    };
-    return statusMap[status as keyof typeof statusMap];
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount);
   };
 
-  const assetColumns = [
-    {
-      title: '代币',
-      key: 'token',
-      render: (_: any, asset: RedeemableAsset) => (
-        <Space>
-          <LockOutlined />
-          <div>
-            <div className="font-medium">{asset.tokenSymbol}</div>
-            <div className="text-xs text-gray-500">{asset.tokenName}</div>
-          </div>
-        </Space>
-      )
-    },
-    {
-      title: '总余额',
-      dataIndex: 'balance',
-      key: 'balance',
-      render: (value: number) => value.toFixed(2)
-    },
-    {
-      title: '可赎回',
-      dataIndex: 'availableAmount',
-      key: 'availableAmount',
-      render: (value: number) => (
-        <span className="text-green-600 font-medium">{value.toFixed(2)}</span>
-      )
-    },
-    {
-      title: '锁定中',
-      dataIndex: 'lockedAmount',
-      key: 'lockedAmount',
-      render: (value: number, record: RedeemableAsset) => (
-        <Space>
-          <span>{value.toFixed(2)}</span>
-          {record.isLocked && (
-            <Tag icon={<LockOutlined />} color="orange">
-              {record.lockEndDate.toLocaleDateString()}
-            </Tag>
-          )}
-        </Space>
-      )
-    },
-    {
-      title: '赎回比例',
-      dataIndex: 'redemptionRatio',
-      key: 'redemptionRatio',
-      render: (value: number) => `$${value.toFixed(2)}`
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_: any, asset: RedeemableAsset) => (
-        <Space>
-          <Button 
-            type="primary" 
-            size="small"
-            disabled={asset.availableAmount <= 0}
-            onClick={() => handleAssetSelect(asset.id)}
-          >
-            赎回
-          </Button>
-        </Space>
-      )
-    }
-  ];
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('zh-CN');
+  };
 
-  const historyColumns = [
-    {
-      title: '代币数量',
-      dataIndex: 'tokenAmount',
-      key: 'tokenAmount'
-    },
-    {
-      title: '赎回价值',
-      dataIndex: 'underlyingValue',
-      key: 'underlyingValue',
-      render: (value: number) => `$${value.toLocaleString()}`
-    },
-    {
-      title: '申请时间',
-      dataIndex: 'requestDate',
-      key: 'requestDate',
-      render: (date: Date) => date.toLocaleDateString()
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        const statusInfo = getStatusTag(status);
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
-      }
-    },
-    {
-      title: '预计完成',
-      dataIndex: 'estimatedCompletion',
-      key: 'estimatedCompletion',
-      render: (date: Date) => date.toLocaleDateString()
-    }
-  ];
-
-  const renderRedeemForm = () => {
-    if (!selectedAsset) return null;
-
-    const maxRedeemable = redeemType === 'normal' ? selectedAsset.availableAmount : selectedAsset.balance;
-    const redemptionValue = calculateRedemptionValue(redeemAmount, selectedAsset, redeemType === 'early');
-    const penalty = redeemType === 'early' && selectedAsset.isLocked ? 
-      (redeemAmount * selectedAsset.redemptionRatio * selectedAsset.penaltyRate) : 0;
-
-    return (
-      <Card title="赎回操作" style={{ borderRadius: 16 }}>
-        <Steps current={currentStep} items={steps} size="small" className="mb-6" />
-        
-        <Space direction="vertical" size="large" className="w-full">
-          {/* 选择赎回类型 */}
-          <div>
-            <Text strong>赎回类型</Text>
-            <div className="mt-2">
-              <Space>
-                <Button 
-                  type={redeemType === 'normal' ? 'primary' : 'default'}
-                  onClick={() => handleRedeemTypeChange('normal')}
-                  disabled={selectedAsset.availableAmount <= 0}
-                >
-                  <UnlockOutlined />
-                  正常赎回
-                </Button>
-                <Button 
-                  type={redeemType === 'early' ? 'primary' : 'default'}
-                  onClick={() => handleRedeemTypeChange('early')}
-                  disabled={!selectedAsset.isLocked || selectedAsset.lockedAmount <= 0}
-                >
-                  <LockOutlined />
-                  提前赎回
-                </Button>
-              </Space>
-            </div>
-            
-            {redeemType === 'early' && selectedAsset.isLocked && (
-              <Alert
-                message="提前赎回说明"
-                description={`提前赎回将收取 ${(selectedAsset.penaltyRate * 100).toFixed(1)}% 的手续费。锁定期将于 ${selectedAsset.lockEndDate.toLocaleDateString()} 结束。`}
-                type="warning"
-                showIcon
-                className="mt-2"
-              />
-            )}
-          </div>
-
-          {/* 赎回数量 */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <Text strong>赎回数量</Text>
-              <Text className="text-gray-500">
-                可赎回: {maxRedeemable.toFixed(2)} {selectedAsset.tokenSymbol}
-              </Text>
-            </div>
-            <Input
-              size="large"
-              placeholder="请输入赎回数量"
-              value={redeemAmount || ''}
-              onChange={(e) => setRedeemAmount(parseFloat(e.target.value) || 0)}
-              suffix={
-                <Button 
-                  type="link" 
-                  size="small"
-                  onClick={() => setRedeemAmount(maxRedeemable)}
-                >
-                  最大
-                </Button>
-              }
-            />
-            <Progress 
-              percent={(redeemAmount / maxRedeemable) * 100} 
-              showInfo={false} 
-              className="mt-2"
-            />
-          </div>
-
-          {/* 赎回详情 */}
-          {redeemAmount > 0 && (
-            <Card className="bg-gray-50">
-              <Space direction="vertical" size="small" className="w-full">
-                <div className="flex justify-between">
-                  <span>赎回代币:</span>
-                  <span className="font-medium">{redeemAmount} {selectedAsset.tokenSymbol}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>赎回比例:</span>
-                  <span>1 {selectedAsset.tokenSymbol} = ${selectedAsset.redemptionRatio}</span>
-                </div>
-                {penalty > 0 && (
-                  <div className="flex justify-between text-red-500">
-                    <span>提前赎回手续费:</span>
-                    <span>-${penalty.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span>实际获得:</span>
-                  <span className="text-green-600">${redemptionValue.toFixed(2)}</span>
-                </div>
-              </Space>
-            </Card>
-          )}
-
-          <Button
-            type="primary"
-            size="large"
-            block
-            disabled={redeemAmount <= 0 || redeemAmount > maxRedeemable}
-            onClick={handleConfirmRedeem}
-          >
-            确认赎回
-          </Button>
-        </Space>
-      </Card>
-    );
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { variant: 'secondary' as const, label: '待处理' },
+      processing: { variant: 'default' as const, label: '处理中' },
+      completed: { variant: 'secondary' as const, label: '已完成' },
+      cancelled: { variant: 'destructive' as const, label: '已取消' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig];
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="mb-6">
-        <Title level={3} className="flex items-center">
-          <LockOutlined className="mr-2" />
-          代币赎回
-        </Title>
-        <Paragraph className="text-gray-600 mb-0">
-          将RWA代币赎回为底层资产或等价值的其他代币
-        </Paragraph>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* 页面标题 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">代币赎回</h1>
+          <p className="text-gray-600">赎回您的房产代币，获取对应的底层资产价值</p>
+        </div>
 
-      <Row gutter={24}>
-        <Col span={16}>
-          <Space direction="vertical" size="large" className="w-full">
-            {/* 资产概览 */}
-            <Card title="我的RWA资产" style={{ borderRadius: 16 }}>
-              <Table
-                columns={assetColumns}
-                dataSource={redeemableAssets}
-                rowKey="id"
-                pagination={false}
-              />
-            </Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="assets">我的资产</TabsTrigger>
+            <TabsTrigger value="history">赎回历史</TabsTrigger>
+            <TabsTrigger value="stats">收益统计</TabsTrigger>
+          </TabsList>
 
-            {/* 赎回表单 */}
-            {selectedAsset && renderRedeemForm()}
+          {/* 我的资产标签页 */}
+          <TabsContent value="assets">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">总资产价值</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(
+                        redeemableAssets.reduce((sum, asset) => 
+                          sum + (asset.balance * asset.redemptionRatio), 0
+                        )
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">包含所有房产代币价值</p>
+                  </CardContent>
+                </Card>
 
-            {/* 历史记录 */}
-            <Card title="赎回历史" style={{ borderRadius: 16 }}>
-              <Table
-                columns={historyColumns}
-                dataSource={redemptionHistory}
-                rowKey="id"
-                pagination={false}
-              />
-            </Card>
-          </Space>
-        </Col>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">可赎回价值</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold text-green-600">
+                      {formatCurrency(
+                        redeemableAssets.reduce((sum, asset) => 
+                          sum + (asset.availableAmount * asset.redemptionRatio), 0
+                        )
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">可立即赎回的价值</p>
+                  </CardContent>
+                </Card>
 
-        <Col span={8}>
-          <Space direction="vertical" size="large" className="w-full">
-            {/* 统计信息 */}
-            <Card title="赎回统计" style={{ borderRadius: 16 }}>
-              <Space direction="vertical" size="middle" className="w-full">
-                <Statistic
-                  title="总持有价值"
-                  value={redeemableAssets.reduce((sum, asset) => sum + (asset.balance * asset.redemptionRatio), 0)}
-                  prefix={<DollarOutlined />}
-                  precision={2}
-                />
-                <Statistic
-                  title="可赎回价值"
-                  value={redeemableAssets.reduce((sum, asset) => sum + (asset.availableAmount * asset.redemptionRatio), 0)}
-                  prefix={<DollarOutlined />}
-                  precision={2}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-                <Statistic
-                  title="锁定价值"
-                  value={redeemableAssets.reduce((sum, asset) => sum + (asset.lockedAmount * asset.redemptionRatio), 0)}
-                  prefix={<LockOutlined />}
-                  precision={2}
-                  valueStyle={{ color: '#faad14' }}
-                />
-              </Space>
-            </Card>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">锁定资产</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-2xl font-bold text-orange-600">
+                      {formatCurrency(
+                        redeemableAssets.reduce((sum, asset) => 
+                          sum + (asset.lockedAmount * asset.redemptionRatio), 0
+                        )
+                      )}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">尚在锁定期的资产</p>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* 赎回说明 */}
-            <Card title="赎回说明" style={{ borderRadius: 16 }}>
-              <Space direction="vertical" size="small">
-                <div className="flex items-start gap-2">
-                  <CheckCircleOutlined className="text-green-500 mt-1" />
-                  <span className="text-sm">正常赎回无手续费，1-3个工作日到账</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <WarningOutlined className="text-orange-500 mt-1" />
-                  <span className="text-sm">提前赎回需支付手续费，立即到账</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <ClockCircleOutlined className="text-blue-500 mt-1" />
-                  <span className="text-sm">赎回申请提交后不可撤销</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <HomeOutlined className="text-purple-500 mt-1" />
-                  <span className="text-sm">赎回价值基于最新资产估值</span>
-                </div>
-              </Space>
-            </Card>
-          </Space>
-        </Col>
-      </Row>
-
-      {/* 确认Modal */}
-      <Modal
-        title="确认赎回"
-        open={confirmModalVisible}
-        onCancel={() => setConfirmModalVisible(false)}
-        footer={[
-          <Button key="cancel" onClick={() => setConfirmModalVisible(false)}>
-            取消
-          </Button>,
-          <Button 
-            key="confirm" 
-            type="primary" 
-            loading={loading}
-            onClick={handleSubmitRedemption}
-          >
-            确认赎回
-          </Button>
-        ]}
-      >
-        {selectedAsset && (
-          <Space direction="vertical" size="middle" className="w-full">
-            <Alert
-              message="请仔细确认赎回信息"
-              description="赎回操作不可撤销，请确保信息正确"
-              type="warning"
-              showIcon
-            />
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <Space direction="vertical" size="small" className="w-full">
-                <div className="flex justify-between">
-                  <span>赎回代币:</span>
-                  <span className="font-medium">{redeemAmount} {selectedAsset.tokenSymbol}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>赎回类型:</span>
-                  <Tag color={redeemType === 'normal' ? 'green' : 'orange'}>
-                    {redeemType === 'normal' ? '正常赎回' : '提前赎回'}
-                  </Tag>
-                </div>
-                <div className="flex justify-between">
-                  <span>预计到账:</span>
-                  <span>{redeemType === 'normal' ? '1-3个工作日' : '立即到账'}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold border-t pt-2">
-                  <span>实际获得:</span>
-                  <span className="text-green-600">
-                    ${calculateRedemptionValue(redeemAmount, selectedAsset, redeemType === 'early').toFixed(2)}
-                  </span>
-                </div>
-              </Space>
+              <Card>
+                <CardHeader>
+                  <CardTitle>资产列表</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {redeemableAssets.map((asset) => (
+                      <Card key={asset.id} className="p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center mb-2">
+                              <Home className="w-5 h-5 mr-2 text-blue-600" />
+                              <h3 className="font-semibold">{asset.tokenName}</h3>
+                              <Badge variant="outline" className="ml-2">
+                                {asset.tokenSymbol}
+                              </Badge>
+                              {asset.isLocked && (
+                                <Badge variant="secondary" className="ml-2">
+                                  <Lock className="w-3 h-3 mr-1" />
+                                  锁定中
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <p className="text-gray-600 mb-4">{asset.underlyingAsset}</p>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                              <div>
+                                <p className="text-gray-500">总余额</p>
+                                <p className="font-medium">{asset.balance.toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500">可赎回</p>
+                                <p className="font-medium text-green-600">{asset.availableAmount.toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500">锁定数量</p>
+                                <p className="font-medium text-orange-600">{asset.lockedAmount.toFixed(2)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500">赎回价格</p>
+                                <p className="font-medium">{formatCurrency(asset.redemptionRatio)}</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500">总价值</p>
+                                <p className="font-medium">{formatCurrency(asset.balance * asset.redemptionRatio)}</p>
+                              </div>
+                            </div>
+                            
+                            {asset.isLocked && (
+                              <div className="mt-4 p-3 bg-orange-50 rounded-lg">
+                                <div className="flex items-center text-orange-800">
+                                  <Calendar className="w-4 h-4 mr-2" />
+                                  <span className="text-sm">
+                                    锁定期至: {formatDate(asset.lockEndDate)}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-orange-600 mt-1">
+                                  提前赎回将收取 {(asset.penaltyRate * 100).toFixed(1)}% 手续费
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="ml-4 space-y-2">
+                            <Button 
+                              onClick={() => handleRedeemRequest(asset)}
+                              disabled={asset.availableAmount === 0}
+                              size="sm"
+                            >
+                              {asset.availableAmount > 0 ? '赎回' : '暂不可赎回'}
+                            </Button>
+                            {asset.isLocked && asset.lockedAmount > 0 && (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleRedeemRequest(asset)}
+                              >
+                                提前赎回
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </Space>
-        )}
-      </Modal>
+          </TabsContent>
+
+          {/* 赎回历史标签页 */}
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>赎回记录</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>资产</TableHead>
+                      <TableHead>赎回数量</TableHead>
+                      <TableHead>赎回价值</TableHead>
+                      <TableHead>手续费</TableHead>
+                      <TableHead>实际获得</TableHead>
+                      <TableHead>申请时间</TableHead>
+                      <TableHead>状态</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {redemptionHistory.map((request) => {
+                      const asset = redeemableAssets.find(a => a.id === request.assetId);
+                      return (
+                        <TableRow key={request.id}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{asset?.tokenSymbol}</p>
+                              <p className="text-sm text-gray-500">{asset?.tokenName}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{request.amount.toFixed(2)}</TableCell>
+                          <TableCell>{formatCurrency(request.estimatedValue)}</TableCell>
+                          <TableCell>
+                            {request.penaltyAmount > 0 ? (
+                              <span className="text-red-600">
+                                {formatCurrency(request.penaltyAmount)}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium">
+                              {formatCurrency(request.estimatedValue - request.penaltyAmount)}
+                            </span>
+                          </TableCell>
+                          <TableCell>{formatDate(request.requestDate)}</TableCell>
+                          <TableCell>{getStatusBadge(request.status)}</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* 收益统计标签页 */}
+          <TabsContent value="stats">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>持仓分布</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {redeemableAssets.map((asset) => {
+                    const percentage = (asset.balance * asset.redemptionRatio) / 
+                      redeemableAssets.reduce((sum, a) => sum + (a.balance * a.redemptionRatio), 0) * 100;
+                    
+                    return (
+                      <div key={asset.id}>
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm font-medium">{asset.tokenSymbol}</span>
+                          <span className="text-sm">{percentage.toFixed(1)}%</span>
+                        </div>
+                        <Progress value={percentage} className="h-2" />
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>近期表现</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-green-600">+8.5%</p>
+                      <p className="text-sm text-gray-600">30天总收益率</p>
+                    </div>
+                    <Separator />
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm">已实现收益</span>
+                        <span className="font-medium text-green-600">+$2,145.80</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">未实现收益</span>
+                        <span className="font-medium">+$892.40</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">总投入成本</span>
+                        <span className="font-medium">$85,230.00</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* 赎回对话框 */}
+        <Dialog open={redeemModalOpen} onOpenChange={setRedeemModalOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>赎回代币</DialogTitle>
+              <DialogDescription>
+                {selectedAsset && `赎回 ${selectedAsset.tokenName} (${selectedAsset.tokenSymbol})`}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedAsset && (
+              <div className="space-y-4">
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="flex justify-between mb-2">
+                    <span className="text-sm">可赎回余额</span>
+                    <span className="font-medium">{selectedAsset.availableAmount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">当前价格</span>
+                    <span className="font-medium">{formatCurrency(selectedAsset.redemptionRatio)}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="redeemAmount">赎回数量</Label>
+                  <Input
+                    id="redeemAmount"
+                    type="number"
+                    placeholder="输入赎回数量"
+                    value={redeemAmount || ''}
+                    onChange={(e) => setRedeemAmount(Number(e.target.value))}
+                    max={selectedAsset.availableAmount}
+                    className="mt-1"
+                  />
+                  <div className="flex justify-between mt-1 text-xs text-gray-500">
+                    <span>最大: {selectedAsset.availableAmount.toFixed(2)}</span>
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="h-auto p-0 text-xs"
+                      onClick={() => setRedeemAmount(selectedAsset.availableAmount)}
+                    >
+                      全部
+                    </Button>
+                  </div>
+                </div>
+
+                {redeemAmount > 0 && (
+                  <div className="bg-green-50 p-3 rounded-lg space-y-2">
+                    {(() => {
+                      const { baseValue, penalty, netValue, isEarlyWithdrawal } = 
+                        calculateRedemptionValue(selectedAsset, redeemAmount);
+                      
+                      return (
+                        <>
+                          <div className="flex justify-between text-sm">
+                            <span>基础价值</span>
+                            <span>{formatCurrency(baseValue)}</span>
+                          </div>
+                          {isEarlyWithdrawal && penalty > 0 && (
+                            <div className="flex justify-between text-sm text-red-600">
+                              <span>提前赎回费用</span>
+                              <span>-{formatCurrency(penalty)}</span>
+                            </div>
+                          )}
+                          <Separator />
+                          <div className="flex justify-between font-medium">
+                            <span>实际获得</span>
+                            <span className="text-green-600">{formatCurrency(netValue)}</span>
+                          </div>
+                          {isEarlyWithdrawal && (
+                            <Alert>
+                              <AlertTriangle className="h-4 w-4" />
+                              <AlertDescription className="text-xs">
+                                此资产仍在锁定期内，提前赎回将产生 {(selectedAsset.penaltyRate * 100).toFixed(1)}% 的手续费。
+                              </AlertDescription>
+                            </Alert>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setRedeemModalOpen(false)}>
+                取消
+              </Button>
+              <Button 
+                onClick={handleConfirmRedemption}
+                disabled={loading || !redeemAmount || redeemAmount <= 0}
+              >
+                {loading ? '处理中...' : '确认赎回'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }

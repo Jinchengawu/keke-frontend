@@ -12,7 +12,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Computer, PrecisionManufacturing, Settings } from '@mui/icons-material';
+import { Coins, Home, RotateCcw } from 'lucide-react';
 
 export function Sidebar() {
       const pathname = usePathname();
@@ -26,16 +26,19 @@ export function Sidebar() {
                     
                     <li className="p-2">
                         <Link className={`${pathname === '/mint' && "text-blue-500"} flex items-end gap-2`} href="/mint">
+                            <Home className="w-4 h-4" />
                             铸造（Mint）
                         </Link>
                     </li>
                     <li className="p-2">
                         <Link className={`${pathname === '/swap' && "text-blue-500"} flex items-end gap-2`} href="/swap">
+                            <Coins className="w-4 h-4" />
                             兑换（Swap）
                         </Link>
                     </li>
                     <li className="p-2">
                         <Link className={`${pathname === '/redeem' && "text-blue-500"} flex items-end gap-2`} href="/redeem">
+                            <RotateCcw className="w-4 h-4" />
                             赎回（Redeem）
                         </Link>
                     </li>

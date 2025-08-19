@@ -1,101 +1,136 @@
-/*
- * @Author: dreamworks.cnn@gmail.com
- * @Date: 2025-08-18 15:00:00
- * @LastEditors: dreamworks.cnn@gmail.com
- * @LastEditTime: 2025-08-18 15:00:00
- * @FilePath: /keke-frontend/src/components/WalletConnect/index.tsx
- * @Description: 钱包连接组件，使用wagmi hooks实现
- * 
- * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
- */
+'use client';
 
-'use client'
-
-import { Button, message, Tooltip } from 'antd'
-import { WalletOutlined, DisconnectOutlined } from '@ant-design/icons'
-import { useWeb3 } from '@/hooks/useWeb3'
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { useWeb3 } from '@/hooks/useWeb3';
+import { 
+  Wallet, 
+  Copy, 
+  LogOut, 
+  AlertCircle, 
+  CheckCircle 
+} from 'lucide-react';
 
 interface WalletConnectProps {
-  size?: 'small' | 'middle' | 'large'
+  size?: 'small' | 'default' | 'large';
+  className?: string;
 }
 
-/**
- * 钱包连接组件
- * 提供连接钱包、断开连接功能
- */
-export default function WalletConnect({ size = 'middle' }: WalletConnectProps) {
-  const {
-    address,
-    isConnected,
-    isConnecting,
-    connectWallet,
-    disconnect,
-  } = useWeb3()
+const WalletConnect: React.FC<WalletConnectProps> = ({ 
+  size = 'default', 
+  className = '' 
+}) => {
+  const { toast } = useToast();
+  const { 
+    address, 
+    isConnected, 
+    isConnecting, 
+    connectWallet, 
+    disconnect 
+  } = useWeb3();
 
-  // 处理钱包连接
-  const handleConnect = async () => {
-    try {
-      await connectWallet()
-      message.success('钱包连接成功!')
-    } catch (error) {
-      console.error('钱包连接失败:', error)
-      message.error('钱包连接失败，请重试')
-    }
-  }
-
-  // 处理钱包断开
-  const handleDisconnect = () => {
-    try {
-      disconnect()
-      message.success('钱包已断开连接')
-    } catch (error) {
-      console.error('断开连接失败:', error)
-      message.error('断开连接失败')
-    }
-  }
-
-  // 格式化地址显示
   const formatAddress = (addr: string) => {
-    if (!addr) return ''
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-  }
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
 
-  if (isConnected && address) {
+  const copyAddress = async () => {
+    if (address) {
+      try {
+        await navigator.clipboard.writeText(address);
+        toast({
+          title: "地址已复制",
+          description: "钱包地址已复制到剪贴板",
+        });
+      } catch (err) {
+        toast({
+          title: "复制失败",
+          description: "无法复制地址到剪贴板",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const getSizeClass = () => {
+    switch (size) {
+      case 'small':
+        return 'text-sm';
+      case 'large':
+        return 'text-lg px-8 py-3';
+      default:
+        return '';
+    }
+  };
+
+  if (!isConnected) {
     return (
-      <div className="flex items-center gap-2">
-        <Tooltip title={`钱包地址: ${address}`}>
-          <Button
-            type="default"
-            icon={<WalletOutlined />}
-            size={size}
-            className="bg-green-50 border-green-200 text-green-700"
-          >
-            {formatAddress(address)}
-          </Button>
-        </Tooltip>
-        
+      <div className={className}>
         <Button
-          type="default"
-          icon={<DisconnectOutlined />}
-          size={size}
-          onClick={handleDisconnect}
-          danger
+          onClick={connectWallet}
+          disabled={isConnecting}
+          className={getSizeClass()}
         >
-          断开
+          <Wallet className="w-4 h-4 mr-2" />
+          {isConnecting ? '连接中...' : '连接钱包'}
         </Button>
       </div>
-    )
+    );
   }
 
   return (
-    <Button
-      type="primary"
-      icon={<WalletOutlined />}
-      size={size}
-      loading={isConnecting}
-      onClick={handleConnect}
-    >
-      连接钱包
-    </Button>
-  )
-}
+    <div className={`space-y-4 ${className}`}>
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium">钱包已连接</p>
+                <p className="text-sm text-gray-600">{formatAddress(address!)}</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              已连接
+            </Badge>
+          </div>
+          
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyAddress}
+              className="flex-1"
+            >
+              <Copy className="w-3 h-3 mr-1" />
+              复制地址
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => disconnect()}
+              className="flex-1"
+            >
+              <LogOut className="w-3 h-3 mr-1" />
+              断开连接
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          钱包连接成功！现在您可以进行代币交易、铸造和赎回操作。
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+};
+
+export default WalletConnect;

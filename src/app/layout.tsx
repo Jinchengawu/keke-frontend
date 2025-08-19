@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/globals.css";
-import AntdConfigProvider from "@/components/AntdRegistry";
+import ShadcnProvider from "@/components/ShadcnProvider";
 import { WagmiProvider } from "@/components/WagmiProvider";
 
 export const metadata: Metadata = {
@@ -17,9 +17,9 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
         <WagmiProvider>
-          <AntdConfigProvider>
+          <ShadcnProvider>
             {children}
-          </AntdConfigProvider>
+          </ShadcnProvider>
         </WagmiProvider>
       </body>
     </html>
