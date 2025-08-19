@@ -97,7 +97,7 @@ const Head: React.FC = () => {
             <span className="text-white font-bold text-lg">🏠</span>
           </div>
           <Link href="/" className="logo-text text-white font-bold text-xl">
-            RenToken.World
+            KeKeToken
           </Link>
         </div>
 
