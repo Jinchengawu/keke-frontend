@@ -269,19 +269,19 @@ export default function SwapPage() {
   }, [tradeData.fromAmount, tradeData.fromToken, tradeData.toToken]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="page-container">
+      <div className="content-wrapper">
         {/* 页面标题 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">去中心化交易所</h1>
-          <p className="text-gray-600">交换代币、提供流动性并赚取收益</p>
+          <h1 className="page-title">🔄 去中心化交易所</h1>
+          <p className="page-subtitle">交换代币、提供流动性并赚取收益</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="swap">交换</TabsTrigger>
-            <TabsTrigger value="pools">流动性池</TabsTrigger>
-            <TabsTrigger value="portfolio">我的资产</TabsTrigger>
+          <TabsList className="themed-tabs-list grid w-full grid-cols-3">
+            <TabsTrigger value="swap" className="themed-tabs-trigger">交换</TabsTrigger>
+            <TabsTrigger value="pools" className="themed-tabs-trigger">流动性池</TabsTrigger>
+            <TabsTrigger value="portfolio" className="themed-tabs-trigger">我的资产</TabsTrigger>
           </TabsList>
 
           {/* 交换标签页 */}
@@ -289,48 +289,48 @@ export default function SwapPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* 交换界面 */}
               <div className="lg:col-span-2">
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
+                    <CardTitle className="flex items-center justify-between text-white">
                       <span className="flex items-center">
-                        <ArrowUpDown className="w-5 h-5 mr-2" />
+                        <ArrowUpDown className="w-5 h-5 mr-2 themed-icon" />
                         代币交换
-                      </span>
-                      <Button variant="ghost" size="sm">
-                        <Settings className="w-4 h-4" />
-                      </Button>
+          </span>
+                      <Button variant="ghost" size="sm" className="themed-button-secondary">
+                        <Settings className="w-4 h-4 themed-icon" />
+          </Button>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* 发送代币 */}
                     <div className="space-y-2">
-                      <Label>发送</Label>
+                      <Label className="themed-label">发送</Label>
                       <div className="flex space-x-2">
                         <div className="flex-1">
-                          <Input
+                    <Input
                             type="number"
-                            placeholder="0.0"
-                            value={tradeData.fromAmount || ''}
+                      placeholder="0.0"
+                      value={tradeData.fromAmount || ''}
                             onChange={(e) => setTradeData(prev => ({ 
                               ...prev, 
                               fromAmount: Number(e.target.value) 
                             }))}
-                            className="text-lg"
+                            className="themed-input text-lg"
                           />
                         </div>
-                        <Select
-                          value={tradeData.fromToken?.id}
+                    <Select
+                      value={tradeData.fromToken?.id}
                           onValueChange={(value) => {
                             const token = tokens.find(t => t.id === value);
                             setTradeData(prev => ({ ...prev, fromToken: token || null }));
                           }}
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="themed-select-trigger w-32">
                             <SelectValue placeholder="选择" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="themed-select-content">
                             {tokens.map((token) => (
-                              <SelectItem key={token.id} value={token.id}>
+                              <SelectItem key={token.id} value={token.id} className="themed-select-item">
                                 <div className="flex items-center">
                                   <span className="mr-2">{token.icon}</span>
                                   {token.symbol}
@@ -338,53 +338,53 @@ export default function SwapPage() {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
-                      </div>
+                    </Select>
+                  </div>
                       {tradeData.fromToken && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                           余额: {formatNumber(tradeData.fromToken.balance)} {tradeData.fromToken.symbol}
                         </p>
                       )}
-                    </div>
+                </div>
 
                     {/* 交换按钮 */}
                     <div className="flex justify-center">
-                      <Button 
+                  <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={handleTokenSwitch}
-                        className="rounded-full p-2"
+                        className="themed-button-secondary rounded-full p-2"
                       >
-                        <ArrowUpDown className="w-4 h-4" />
+                        <ArrowUpDown className="w-4 h-4 themed-icon" />
                       </Button>
-                    </div>
+                </div>
 
                     {/* 接收代币 */}
                     <div className="space-y-2">
-                      <Label>接收</Label>
+                      <Label className="themed-label">接收</Label>
                       <div className="flex space-x-2">
                         <div className="flex-1">
-                          <Input
+                    <Input
                             type="number"
-                            placeholder="0.0"
+                      placeholder="0.0"
                             value={tradeData.toAmount || ''}
                             readOnly
-                            className="text-lg bg-gray-50"
+                            className="themed-input text-lg"
                           />
                         </div>
-                        <Select
-                          value={tradeData.toToken?.id}
+                    <Select
+                      value={tradeData.toToken?.id}
                           onValueChange={(value) => {
                             const token = tokens.find(t => t.id === value);
                             setTradeData(prev => ({ ...prev, toToken: token || null }));
                           }}
                         >
-                          <SelectTrigger className="w-32">
+                          <SelectTrigger className="themed-select-trigger w-32">
                             <SelectValue placeholder="选择" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="themed-select-content">
                             {tokens.map((token) => (
-                              <SelectItem key={token.id} value={token.id}>
+                              <SelectItem key={token.id} value={token.id} className="themed-select-item">
                                 <div className="flex items-center">
                                   <span className="mr-2">{token.icon}</span>
                                   {token.symbol}
@@ -392,35 +392,35 @@ export default function SwapPage() {
                               </SelectItem>
                             ))}
                           </SelectContent>
-                        </Select>
-                      </div>
+                    </Select>
+                  </div>
                       {tradeData.toToken && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-400">
                           余额: {formatNumber(tradeData.toToken.balance)} {tradeData.toToken.symbol}
                         </p>
                       )}
-                    </div>
+                </div>
 
                     {/* 交易信息 */}
-                    {tradeData.fromToken && tradeData.toToken && tradeData.fromAmount > 0 && (
-                      <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-                        <div className="flex justify-between text-sm">
+                {tradeData.fromToken && tradeData.toToken && tradeData.fromAmount > 0 && (
+                      <div className="glass-card p-3 rounded-lg space-y-2">
+                        <div className="flex justify-between text-sm text-gray-300">
                           <span>汇率</span>
                           <span>
                             1 {tradeData.fromToken.symbol} ≈ {formatNumber(tradeData.fromToken.price / tradeData.toToken.price)} {tradeData.toToken.symbol}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-gray-300">
                           <span>价格影响</span>
-                          <span className={tradeData.priceImpact > 1 ? 'text-orange-600' : 'text-green-600'}>
+                          <span className={tradeData.priceImpact > 1 ? 'text-orange-400' : 'text-green-400'}>
                             {tradeData.priceImpact.toFixed(2)}%
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-gray-300">
                           <span>手续费</span>
                           <span>0.3%</span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-sm text-gray-300">
                           <span>滑点容忍度</span>
                           <span>{tradeData.slippage}%</span>
                         </div>
@@ -428,57 +428,57 @@ export default function SwapPage() {
                     )}
 
                     {/* 交换按钮 */}
-                    <Button 
-                      onClick={handleSwap}
+                <Button
+                  onClick={handleSwap}
                       disabled={loading || !tradeData.fromToken || !tradeData.toToken || !tradeData.fromAmount}
-                      className="w-full"
+                      className="themed-button-primary w-full"
                       size="lg"
                     >
                       {loading ? (
-                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin themed-loading" />
                       ) : (
                         <ArrowUpDown className="w-4 h-4 mr-2" />
                       )}
                       {loading ? '交换中...' : '交换'}
-                    </Button>
+                </Button>
                   </CardContent>
-                </Card>
+            </Card>
               </div>
 
               {/* 市场统计 */}
               <div className="space-y-4">
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">市场概览</CardTitle>
+                    <CardTitle className="text-lg text-white">市场概览</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {tokens.slice(0, 5).map((token) => (
                       <div key={token.id} className="flex items-center justify-between">
                         <div className="flex items-center">
                           <span className="mr-2 text-lg">{token.icon}</span>
-                          <div>
-                            <p className="font-medium">{token.symbol}</p>
-                            <p className="text-sm text-gray-500">{formatCurrency(token.price)}</p>
+                      <div>
+                            <p className="font-medium text-white">{token.symbol}</p>
+                            <p className="text-sm text-gray-400">{formatCurrency(token.price)}</p>
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`flex items-center ${token.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      </div>
+                    <div className="text-right">
+                          <div className={`flex items-center ${token.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                             {token.change24h >= 0 ? (
                               <TrendingUp className="w-3 h-3 mr-1" />
                             ) : (
                               <TrendingDown className="w-3 h-3 mr-1" />
                             )}
                             <span className="text-sm">{Math.abs(token.change24h).toFixed(2)}%</span>
-                          </div>
-                        </div>
                       </div>
-                    ))}
+                    </div>
+                  </div>
+                ))}
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">热门交易对</CardTitle>
+                    <CardTitle className="text-lg text-white">热门交易对</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
@@ -487,18 +487,18 @@ export default function SwapPage() {
                           <div className="flex items-center">
                             <span className="mr-1">{pool.token0.icon}</span>
                             <span className="mr-1">{pool.token1.icon}</span>
-                            <span className="text-sm font-medium">
+                            <span className="text-sm font-medium text-white">
                               {pool.token0.symbol}/{pool.token1.symbol}
                             </span>
                           </div>
-                          <Badge variant="secondary">
+                          <Badge className="themed-badge">
                             {pool.apr.toFixed(1)}% APR
                           </Badge>
                         </div>
                       ))}
                     </div>
                   </CardContent>
-                </Card>
+            </Card>
               </div>
             </div>
           </TabsContent>
@@ -507,54 +507,55 @@ export default function SwapPage() {
           <TabsContent value="pools">
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">流动性池</h2>
-                <Button onClick={() => { setModalType('add'); setModalVisible(true); }}>
+                <h2 className="text-xl font-semibold text-white">流动性池</h2>
+                <Button onClick={() => { setModalType('add'); setModalVisible(true); }} className="themed-button-primary">
                   <Plus className="w-4 h-4 mr-2" />
                   添加流动性
                 </Button>
               </div>
 
-              <Card>
-                <Table>
+              <Card className="glass-card">
+                <Table className="themed-table">
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>交易对</TableHead>
-                      <TableHead>总流动性</TableHead>
-                      <TableHead>24h交易量</TableHead>
-                      <TableHead>24h手续费</TableHead>
-                      <TableHead>APR</TableHead>
-                      <TableHead>我的流动性</TableHead>
-                      <TableHead></TableHead>
+                    <TableRow className="themed-table-header">
+                      <TableHead className="themed-table-cell">交易对</TableHead>
+                      <TableHead className="themed-table-cell">总流动性</TableHead>
+                      <TableHead className="themed-table-cell">24h交易量</TableHead>
+                      <TableHead className="themed-table-cell">24h手续费</TableHead>
+                      <TableHead className="themed-table-cell">APR</TableHead>
+                      <TableHead className="themed-table-cell">我的流动性</TableHead>
+                      <TableHead className="themed-table-cell"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {pools.map((pool) => (
-                      <TableRow key={pool.id}>
-                        <TableCell>
+                      <TableRow key={pool.id} className="themed-table-row">
+                        <TableCell className="themed-table-cell">
                           <div className="flex items-center">
                             <span className="mr-1">{pool.token0.icon}</span>
                             <span className="mr-1">{pool.token1.icon}</span>
                             <span className="font-medium">
                               {pool.token0.symbol}/{pool.token1.symbol}
-                            </span>
+        </span>
                           </div>
                         </TableCell>
-                        <TableCell>{formatCurrency(pool.liquidity)}</TableCell>
-                        <TableCell>{formatCurrency(pool.volume24h)}</TableCell>
-                        <TableCell>{formatCurrency(pool.fees24h)}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
+                        <TableCell className="themed-table-cell">{formatCurrency(pool.liquidity)}</TableCell>
+                        <TableCell className="themed-table-cell">{formatCurrency(pool.volume24h)}</TableCell>
+                        <TableCell className="themed-table-cell">{formatCurrency(pool.fees24h)}</TableCell>
+                        <TableCell className="themed-table-cell">
+                          <Badge className="themed-badge">
                             {pool.apr.toFixed(1)}%
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="themed-table-cell">
                           {pool.myLiquidity > 0 ? formatCurrency(pool.myLiquidity) : '-'}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="themed-table-cell">
                           <div className="flex space-x-2">
                             <Button 
                               size="sm" 
                               variant="outline"
+                              className="themed-button-secondary"
                               onClick={() => { setModalType('add'); setModalVisible(true); }}
                             >
                               <Plus className="w-3 h-3" />
@@ -563,6 +564,7 @@ export default function SwapPage() {
                               <Button 
                                 size="sm" 
                                 variant="outline"
+                                className="themed-button-secondary"
                                 onClick={() => { setModalType('remove'); setModalVisible(true); }}
                               >
                                 <Minus className="w-3 h-3" />
@@ -581,87 +583,87 @@ export default function SwapPage() {
           {/* 我的资产标签页 */}
           <TabsContent value="portfolio">
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold">我的资产</h2>
+              <h2 className="text-xl font-semibold text-white">我的资产</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">总资产价值</CardTitle>
+                    <CardTitle className="text-lg text-white">总资产价值</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-white">
                       {formatCurrency(tokens.reduce((sum, token) => sum + (token.balance * token.price), 0))}
                     </p>
-                    <p className="text-sm text-green-600 mt-2">
-                      <TrendingUp className="w-3 h-3 inline mr-1" />
+                    <p className="text-sm text-green-400 mt-2">
+                      <TrendingUp className="w-3 h-3 inline mr-1 themed-icon-success" />
                       +5.67% (24h)
                     </p>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">流动性收益</CardTitle>
+                    <CardTitle className="text-lg text-white">流动性收益</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-white">
                       {formatCurrency(pools.reduce((sum, pool) => sum + pool.myLiquidity, 0))}
                     </p>
-                    <p className="text-sm text-green-600 mt-2">
-                      <DollarSign className="w-3 h-3 inline mr-1" />
+                    <p className="text-sm text-green-400 mt-2">
+                      <DollarSign className="w-3 h-3 inline mr-1 themed-icon-success" />
                       {formatCurrency(pools.reduce((sum, pool) => sum + (pool.myLiquidity * pool.apr / 365 / 100), 0))} 日收益
                     </p>
                   </CardContent>
-                </Card>
+              </Card>
 
-                <Card>
+                <Card className="glass-card">
                   <CardHeader>
-                    <CardTitle className="text-lg">平均APR</CardTitle>
+                    <CardTitle className="text-lg text-white">平均APR</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-white">
                       {(pools.reduce((sum, pool) => sum + pool.apr, 0) / pools.length).toFixed(1)}%
                     </p>
-                    <p className="text-sm text-gray-600 mt-2">
-                      <Flame className="w-3 h-3 inline mr-1" />
+                    <p className="text-sm text-gray-400 mt-2">
+                      <Flame className="w-3 h-3 inline mr-1 themed-icon" />
                       流动性挖矿收益率
                     </p>
                   </CardContent>
-                </Card>
+              </Card>
               </div>
 
-              <Card>
+              <Card className="glass-card">
                 <CardHeader>
-                  <CardTitle>代币余额</CardTitle>
+                  <CardTitle className="text-white">代币余额</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
+                  <Table className="themed-table">
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>代币</TableHead>
-                        <TableHead>余额</TableHead>
-                        <TableHead>价格</TableHead>
-                        <TableHead>价值</TableHead>
-                        <TableHead>24h变化</TableHead>
+                      <TableRow className="themed-table-header">
+                        <TableHead className="themed-table-cell">代币</TableHead>
+                        <TableHead className="themed-table-cell">余额</TableHead>
+                        <TableHead className="themed-table-cell">价格</TableHead>
+                        <TableHead className="themed-table-cell">价值</TableHead>
+                        <TableHead className="themed-table-cell">24h变化</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {tokens.map((token) => (
-                        <TableRow key={token.id}>
-                          <TableCell>
+                        <TableRow key={token.id} className="themed-table-row">
+                          <TableCell className="themed-table-cell">
                             <div className="flex items-center">
                               <span className="mr-2 text-lg">{token.icon}</span>
                               <div>
-                                <p className="font-medium">{token.symbol}</p>
-                                <p className="text-sm text-gray-500">{token.name}</p>
+                                <p className="font-medium text-white">{token.symbol}</p>
+                                <p className="text-sm text-gray-400">{token.name}</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{formatNumber(token.balance)}</TableCell>
-                          <TableCell>{formatCurrency(token.price)}</TableCell>
-                          <TableCell>{formatCurrency(token.balance * token.price)}</TableCell>
-                          <TableCell>
-                            <div className={`flex items-center ${token.change24h >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <TableCell className="themed-table-cell">{formatNumber(token.balance)}</TableCell>
+                          <TableCell className="themed-table-cell">{formatCurrency(token.price)}</TableCell>
+                          <TableCell className="themed-table-cell">{formatCurrency(token.balance * token.price)}</TableCell>
+                          <TableCell className="themed-table-cell">
+                            <div className={`flex items-center ${token.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                               {token.change24h >= 0 ? (
                                 <TrendingUp className="w-3 h-3 mr-1" />
                               ) : (
@@ -682,18 +684,18 @@ export default function SwapPage() {
 
         {/* 流动性对话框 */}
         <Dialog open={modalVisible} onOpenChange={setModalVisible}>
-          <DialogContent>
+          <DialogContent className="themed-dialog-content">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="themed-dialog-title">
                 {modalType === 'add' ? '添加流动性' : '移除流动性'}
               </DialogTitle>
-              <DialogDescription>
+              <DialogDescription className="themed-dialog-description">
                 {modalType === 'add' ? '向流动性池添加代币以赚取手续费收益' : '从流动性池移除代币'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
-              <Alert>
-                <Info className="h-4 w-4" />
+              <Alert className="themed-alert-info">
+                <Info className="h-4 w-4 themed-icon" />
                 <AlertDescription>
                   {modalType === 'add' 
                     ? '添加流动性将获得LP代币，并可获得交易手续费分成'
@@ -704,10 +706,10 @@ export default function SwapPage() {
               {/* 这里可以添加具体的流动性操作表单 */}
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setModalVisible(false)}>
+              <Button variant="outline" onClick={() => setModalVisible(false)} className="themed-button-secondary">
                 取消
               </Button>
-              <Button onClick={() => setModalVisible(false)}>
+              <Button onClick={() => setModalVisible(false)} className="themed-button-primary">
                 确认{modalType === 'add' ? '添加' : '移除'}
               </Button>
             </DialogFooter>
