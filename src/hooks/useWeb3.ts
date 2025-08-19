@@ -13,29 +13,119 @@
 
 import { useAccount, useConnect, useDisconnect, useWriteContract } from 'wagmi'
 import { metaMask } from 'wagmi/connectors'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { Plan } from 'commons/models/plan'
 import ConfigService from '@/services/config-service'
 import ERC20_ABI from 'commons/services/ERC20.json'
+import { isOKXWallet, isBinanceWallet, okxWallet, binanceWallet } from '@/lib/wagmi'
+
+// 钱包类型定义
+export type WalletType = 'metamask' | 'okx' | 'binance' | 'injected'
+
+// 可用钱包列表
+export interface AvailableWallet {
+  type: WalletType
+  name: string
+  isInstalled: boolean
+  icon?: string
+}
 
 /**
  * 钱包连接Hook
- * 提供连接、断开连接和获取钱包状态的功能
+ * 提供连接、断开连接和获取钱包状态的功能，支持多种钱包
  */
 export function useWalletConnection() {
-  const { address, isConnected, isConnecting } = useAccount()
+  const { address, isConnected, isConnecting, connector } = useAccount()
   const { connect } = useConnect()
   const { disconnect } = useDisconnect()
+  const [selectedWallet, setSelectedWallet] = useState<WalletType | null>(null)
 
-  const connectWallet = useCallback(() => {
-    connect({ connector: metaMask() })
+  // 检测可用钱包
+  const getAvailableWallets = useCallback((): AvailableWallet[] => {
+    const wallets: AvailableWallet[] = [
+      {
+        type: 'metamask',
+        name: 'MetaMask',
+        isInstalled: typeof window !== 'undefined' && !!window.ethereum?.isMetaMask,
+      },
+      {
+        type: 'okx',
+        name: 'OKX Wallet',
+        isInstalled: isOKXWallet(),
+      },
+      {
+        type: 'binance',
+        name: 'Binance Wallet',
+        isInstalled: isBinanceWallet(),
+      },
+      {
+        type: 'injected',
+        name: '其他钱包',
+        isInstalled: typeof window !== 'undefined' && !!window.ethereum,
+      }
+    ]
+    
+    return wallets
+  }, [])
+
+  // 连接指定类型的钱包
+  const connectWallet = useCallback((walletType: WalletType) => {
+    setSelectedWallet(walletType)
+    
+    try {
+      switch (walletType) {
+        case 'metamask':
+          connect({ connector: metaMask() })
+          break
+        case 'okx':
+          connect({ connector: okxWallet() })
+          break
+        case 'binance':
+          connect({ connector: binanceWallet() })
+          break
+        case 'injected':
+        default:
+          // 使用通用注入式连接器作为兜底
+          connect({ connector: metaMask() })
+          break
+      }
+    } catch (error) {
+      console.error(`连接${walletType}钱包失败:`, error)
+      setSelectedWallet(null)
+      throw error
+    }
   }, [connect])
+
+  // 连接默认钱包（保持向后兼容）
+  const connectDefaultWallet = useCallback(() => {
+    connectWallet('metamask')
+  }, [connectWallet])
+
+  // 获取当前连接的钱包类型
+  const getCurrentWalletType = useCallback((): WalletType | null => {
+    if (!connector) return null
+    
+    switch (connector.id) {
+      case 'metaMask':
+        return 'metamask'
+      case 'okx':
+        return 'okx'
+      case 'binance':
+        return 'binance'
+      default:
+        return 'injected'
+    }
+  }, [connector])
 
   return {
     address,
     isConnected,
     isConnecting,
+    selectedWallet,
+    currentWalletType: getCurrentWalletType(),
+    getAvailableWallets,
     connectWallet,
+    connectDefaultWallet,
     disconnect,
   }
 }
@@ -85,5 +175,7 @@ export function useWeb3() {
   return {
     ...wallet,
     ...erc20,
+    // 确保向后兼容性，保留原有的 connectWallet 方法
+    connectWallet: wallet.connectDefaultWallet,
   }
 }

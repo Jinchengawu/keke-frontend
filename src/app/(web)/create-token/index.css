@@ -1,0 +1,207 @@
+/* Create Token Page Styles */
+.create-token-container {
+  /* 深色背景渐变 */
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f172a 50%, #1e1b4b 75%, #1a1a2e 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+  width: 100%;
+  height: 100%
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 卡片样式 */
+.token-form-card {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.token-form-card .ant-card-body {
+  padding: 2rem;
+}
+
+/* 表单样式 */
+.token-form .ant-form-item-label > label {
+  color: #e5e7eb !important;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.token-form .ant-input,
+.token-form .ant-input-number,
+.token-form .ant-select-selector {
+  background: rgba(55, 65, 81, 0.6) !important;
+  border: 1px solid rgba(75, 85, 99, 0.6) !important;
+  color: #ffffff !important;
+  transition: all 0.3s ease;
+}
+
+.token-form .ant-input:focus,
+.token-form .ant-input-number:focus,
+.token-form .ant-select-selector:focus,
+.token-form .ant-select-focused .ant-select-selector {
+  background: rgba(55, 65, 81, 0.8) !important;
+  border-color: #8b5cf6 !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+}
+
+.token-form .ant-input::placeholder,
+.token-form .ant-input-number::placeholder {
+  color: #9ca3af !important;
+}
+
+/* 文本域样式 */
+.token-form .ant-input {
+  border-radius: 8px;
+}
+
+/* 选择器样式 */
+.token-form .ant-select-dropdown {
+  background: rgba(31, 41, 55, 0.95) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(75, 85, 99, 0.5) !important;
+}
+
+.token-form .ant-select-item {
+  color: #e5e7eb !important;
+}
+
+.token-form .ant-select-item:hover {
+  background: rgba(139, 92, 246, 0.2) !important;
+}
+
+.token-form .ant-select-item-option-selected {
+  background: rgba(139, 92, 246, 0.3) !important;
+}
+
+.token-form .ant-select-arrow {
+  color: #9ca3af;
+}
+
+/* 上传区域样式 */
+.upload-area {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #8b5cf6 !important;
+  background: rgba(139, 92, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 开关样式 */
+.token-form .ant-switch {
+  background: rgba(75, 85, 99, 0.8) !important;
+}
+
+.token-form .ant-switch-checked {
+  background: linear-gradient(135deg, #10b981, #3b82f6) !important;
+}
+
+/* 分割线样式 */
+.token-form .ant-divider {
+  border-color: rgba(75, 85, 99, 0.5) !important;
+  margin: 1.5rem 0;
+}
+
+/* 按钮悬停效果 */
+.token-form .ant-btn[disabled] {
+  background: rgba(75, 85, 99, 0.5) !important;
+  border: none !important;
+  color: rgba(156, 163, 175, 0.8) !important;
+}
+
+.token-form .ant-btn-primary:not([disabled]):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4) !important;
+  background: linear-gradient(135deg, #059669 0%, #2563eb 50%, #7c3aed 100%) !important;
+}
+
+/* 警告提示样式 */
+.ant-alert-warning {
+  background: rgba(245, 158, 11, 0.1) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.ant-alert-warning .ant-alert-message,
+.ant-alert-warning .ant-alert-description {
+  color: #fbbf24 !important;
+}
+
+/* 成功卡片样式 */
+.ant-card.bg-green-500\/10 {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* 输入框前缀图标样式 */
+.token-form .ant-input-prefix {
+  color: #9ca3af;
+  margin-right: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .token-form-card .ant-card-body {
+    padding: 1.5rem 1rem;
+  }
+  
+  .create-token-container {
+    padding: 1rem;
+  }
+}
+
+/* 表单验证错误样式 */
+.token-form .ant-form-item-has-error .ant-input,
+.token-form .ant-form-item-has-error .ant-input-number,
+.token-form .ant-form-item-has-error .ant-select-selector {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.token-form .ant-form-item-explain-error {
+  color: #fca5a5 !important;
+}
+
+/* 加载状态样式 */
+.token-form .ant-btn-loading-icon {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 标题样式 */
+.token-form-card h2.ant-typography {
+  margin-bottom: 0 !important;
+}
+
+.token-form-card .ant-typography {
+  color: inherit !important;
+}
+
+/* 自定义滚动条 */
+.token-form .ant-input::-webkit-scrollbar {
+  width: 6px;
+}
+
+.token-form .ant-input::-webkit-scrollbar-track {
+  background: rgba(55, 65, 81, 0.3);
+  border-radius: 3px;
+}
+
+.token-form .ant-input::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 3px;
+}
+
+.token-form .ant-input::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}

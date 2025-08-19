@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react'
 import { Button, Dropdown, Space } from 'antd'
-import { DownOutlined, GlobalOutlined, MenuOutlined } from '@ant-design/icons'
+import { DownOutlined, GlobalOutlined, MenuOutlined, LogoutOutlined, WalletOutlined, CopyOutlined } from '@ant-design/icons'
 import { useWeb3 } from '@/hooks/useWeb3'
 import Link from 'next/link'
 import './index.css'
 
 const Head: React.FC = () => {
-  const { address, isConnected, isConnecting, connectWallet } = useWeb3()
+  const { address, isConnected, isConnecting, connectWallet, disconnect } = useWeb3()
   const [currentLang, setCurrentLang] = useState('繁體中文')
 
   // 语言选项
@@ -30,11 +30,11 @@ const Head: React.FC = () => {
   // 导航菜单项
   const navItems = [
     { key: 'marketplace', label: '交易', href: '/swap' },
-    { key: 'create', label: '创建代币', href: '/mint' },
+    { key: 'mint', label: '铸造', href: '/mint' },
     { key: 'ranking', label: '赎回', href: '/redeem' },
     { key: 'advanced', label: '农场', href: '/' },
-    { key: 'activity', label: '发射平台', href: '/' },
-  ]
+    { key: 'create', label: '创建代币', href: '/create-token' },
+    ]
 
   // 处理语言切换
   const handleLanguageChange = ({ key }: { key: string }) => {
@@ -48,6 +48,61 @@ const Head: React.FC = () => {
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`
   }
+
+  // 复制地址到剪贴板
+  const handleCopyAddress = async () => {
+    if (address) {
+      try {
+        await navigator.clipboard.writeText(address)
+        // 可以添加成功提示
+        console.log('地址已复制到剪贴板')
+      } catch (error) {
+        console.error('复制失败:', error)
+      }
+    }
+  }
+
+  // 断开钱包连接
+  const handleDisconnect = () => {
+    disconnect()
+  }
+
+  // 钱包菜单项
+  const walletMenuItems = [
+    {
+      key: 'address',
+      label: (
+        <div className="flex items-center space-x-2 py-1">
+          <WalletOutlined />
+          <span className="text-gray-600 text-sm">{address}</span>
+        </div>
+      ),
+      disabled: true,
+    },
+    {
+      type: 'divider' as const,
+    },
+    {
+      key: 'copy',
+      label: (
+        <div className="flex items-center space-x-2">
+          <CopyOutlined />
+          <span>复制地址</span>
+        </div>
+      ),
+      onClick: handleCopyAddress,
+    },
+    {
+      key: 'disconnect',
+      label: (
+        <div className="flex items-center space-x-2 text-red-500">
+          <LogoutOutlined />
+          <span>断开连接</span>
+        </div>
+      ),
+      onClick: handleDisconnect,
+    },
+  ]
 
   return (
     <header className="head-container h-16 w100 flex items-center justify-between px-6">
@@ -104,25 +159,46 @@ const Head: React.FC = () => {
           </Button>
         </Dropdown>
 
-        {/* 连接钱包按钮 */}
+        {/* 连接钱包按钮/菜单 */}
         <div className="relative">
-          <Button
-            type="primary"
-            size="middle"
-            loading={isConnecting}
-            onClick={connectWallet}
-            className="wallet-button border-none rounded-lg px-6 font-medium"
-            style={{
-              background: isConnected 
-                ? 'linear-gradient(90deg, #10b981 0%, #3b82f6 100%)'
-                : 'linear-gradient(90deg, #059669 0%, #2563eb 100%)',
-            }}
-          >
-            {isConnected 
-              ? formatAddress(address || '') 
-              : '连接钱包'
-            }
-          </Button>
+          {!isConnected ? (
+            // 未连接状态：显示连接按钮
+            <Button
+              type="primary"
+              size="middle"
+              loading={isConnecting}
+              onClick={connectWallet}
+              className="wallet-button border-none rounded-lg px-6 font-medium"
+              style={{
+                background: 'linear-gradient(90deg, #059669 0%, #2563eb 100%)',
+              }}
+            >
+              连接钱包
+            </Button>
+          ) : (
+            // 已连接状态：显示下拉菜单
+            <Dropdown
+              menu={{
+                items: walletMenuItems,
+              }}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button
+                type="primary"
+                size="middle"
+                className="wallet-button border-none rounded-lg px-6 font-medium"
+                style={{
+                  background: 'linear-gradient(90deg, #10b981 0%, #3b82f6 100%)',
+                }}
+              >
+                <Space>
+                  {formatAddress(address || '')}
+                  <DownOutlined className="text-xs" />
+                </Space>
+              </Button>
+            </Dropdown>
+          )}
           
           {/* 连接状态指示器 */}
           {isConnected && (
