@@ -23,10 +23,11 @@ export default function WebLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="h-screen flex bg-slate-100 items-stretch">
-        <Head/>
-        {/* <Sidebar /> */}
-        {children}
+    <div className="min-h-screen flex flex-col bg-slate-100">
+        <Head />
+        <main className="flex-1 pt-16">
+          {children}
+        </main>
     </div>
   );
 }

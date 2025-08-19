@@ -88,133 +88,127 @@ const Head: React.FC = () => {
   }
 
   return (
-    <header className="header-container">
-      <div className="header-content">
+    <header className="head-container h-16 w100 flex items-center justify-between px-6">
+      {/* 左侧：Logo + 导航菜单 */}
+      <div className="flex items-center space-x-8">
         {/* Logo */}
-        <div className="logo-section">
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="logo-icon">🏠</div>
-            <div className="logo-text">
-              <div className="logo-title">RenToken</div>
-              <div className="logo-subtitle">房租收益RWA平台</div>
-            </div>
+        <div className="logo-container flex items-center space-x-2 cursor-pointer">
+          <div className="logo-icon w-8 h-8 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-lg">🏠</span>
+          </div>
+          <Link href="/" className="logo-text text-white font-bold text-xl">
+            RenToken.World
           </Link>
         </div>
 
-        {/* 桌面端导航 */}
-        <nav className="desktop-nav">
-          <div className="nav-links">
-            {navItems.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                className="nav-link"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
+        {/* 导航菜单 - 桌面版 */}
+        <nav className="nav-menu hidden md:flex items-center space-x-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.key}
+              href={item.href}
+              className="nav-item text-gray-300 hover:text-white text-sm font-medium"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* 右侧操作区 */}
-        <div className="header-actions">
-          {/* 语言切换 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="language-dropdown">
-                <Globe className="w-4 h-4" />
-                <span className="hidden md:inline">{currentLang}</span>
-                <ChevronDown className="w-3 h-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {languageItems.map((item) => (
-                <DropdownMenuItem
-                  key={item.key}
-                  onClick={() => handleLanguageChange(item.key)}
-                  className={cn(
-                    currentLang === item.label && "bg-accent"
-                  )}
-                >
+        {/* 移动端菜单按钮 */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="mobile-menu-button md:hidden">
+              <Menu className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {navItems.map((item) => (
+              <DropdownMenuItem key={item.key} asChild>
+                <Link href={item.href}>
                   {item.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-          {/* 钱包连接 */}
+      {/* 右侧：语言选择 + 连接钱包按钮 */}
+      <div className="flex items-center space-x-4">
+        {/* 语言选择 */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="language-dropdown text-gray-300 hover:text-white border-none bg-transparent"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">{currentLang}</span>
+              <ChevronDown className="w-3 h-3 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {languageItems.map((item) => (
+              <DropdownMenuItem
+                key={item.key}
+                onClick={() => handleLanguageChange(item.key)}
+                className={cn(
+                  currentLang === item.label && "bg-accent"
+                )}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* 连接钱包按钮/菜单 */}
+        <div className="relative">
           {!isConnected ? (
-            <Button 
+            // 未连接状态：显示连接按钮
+            <Button
               onClick={connectWallet}
               disabled={isConnecting}
-              className="connect-wallet-btn"
+              className="wallet-button border-none rounded-lg px-6 font-medium"
+              style={{
+                background: 'linear-gradient(90deg, #059669 0%, #2563eb 100%)',
+              }}
             >
-              <Wallet className="w-4 h-4" />
+              <Wallet className="w-4 h-4 mr-2" />
               {isConnecting ? '连接中...' : '连接钱包'}
             </Button>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="wallet-dropdown">
-                  <Wallet className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {formatAddress(address || '')}
-                  </span>
-                  <ChevronDown className="w-3 h-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={copyAddress}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  复制地址
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => disconnect()}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  断开连接
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            // 已连接状态：显示下拉菜单
+            <>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    className="wallet-button border-none rounded-lg px-6 font-medium"
+                    style={{
+                      background: 'linear-gradient(90deg, #10b981 0%, #3b82f6 100%)',
+                    }}
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    <span>{formatAddress(address || '')}</span>
+                    <ChevronDown className="w-3 h-3 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={copyAddress}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    复制地址
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => disconnect()}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    断开连接
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* 连接状态指示器 */}
+              <div className="connection-indicator"></div>
+            </>
           )}
-
-          {/* 移动端菜单 */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="mobile-menu-btn md:hidden">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {navItems.map((item) => (
-                <DropdownMenuItem key={item.key} asChild>
-                  <Link href={item.href}>
-                    {item.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* 页面标识和社交链接 */}
-      <div className="header-footer">
-        <div className="page-info">
-          <span className="page-badge">
-            🚀 房产租金收益数字化平台
-          </span>
-        </div>
-        
-        <div className="social-links">
-          <Button variant="ghost" size="sm" asChild>
-            <a href="#" target="_blank" rel="noopener noreferrer">
-              <Twitter className="w-4 h-4" />
-            </a>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <a href="#" target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </Button>
         </div>
       </div>
     </header>

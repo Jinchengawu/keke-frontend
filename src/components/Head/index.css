@@ -166,6 +166,17 @@
   background-color: rgba(0, 0, 0, 0.9);
 }
 
+/* 钱包连接按钮样式 */
+.wallet-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wallet-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
 /* 加载动画 */
 .loading-spinner {
   animation: spin 1s linear infinite;
