@@ -9,7 +9,7 @@
  * Copyright (c) 2025 by ${git_name_email}, All Rights Reserved. 
  */
 
-import { createWalletClient, custom, parseEther, getAddress } from 'viem';
+import { createWalletClient, createPublicClient, custom, http, parseEther, getAddress } from 'viem';
 import { bscTestnet, bsc, polygon, mainnet } from 'viem/chains';
 import TokenFactoryABI from './TokenFactory.json';
 
@@ -69,6 +69,23 @@ function getWalletClient(chainId: number = 97) {
   return createWalletClient({
     chain: networkConfig.chain,
     transport: custom(window.ethereum)
+  });
+}
+
+/**
+ * 获取公共客户端（用于读取操作）
+ * @param chainId 网络ID
+ * @returns 公共客户端实例
+ */
+function getPublicClient(chainId: number) {
+  const networkConfig = NETWORK_CONFIG[chainId as keyof typeof NETWORK_CONFIG];
+  if (!networkConfig) {
+    throw new Error(`不支持的网络 ID: ${chainId}`);
+  }
+
+  return createPublicClient({
+    chain: networkConfig.chain,
+    transport: http()
   });
 }
 
@@ -278,7 +295,7 @@ export async function createToken(params: TokenCreationParams): Promise<TokenCre
  */
 export async function getDeployedTokens(): Promise<string[]> {
   const currentNetworkId = await getCurrentNetworkId();
-  const walletClient = getWalletClient(currentNetworkId);
+  const publicClient = getPublicClient(currentNetworkId);
   
   const networkConfig = NETWORK_CONFIG[currentNetworkId as keyof typeof NETWORK_CONFIG];
   if (!networkConfig) {
@@ -286,7 +303,7 @@ export async function getDeployedTokens(): Promise<string[]> {
   }
 
   try {
-    const result = await walletClient.readContract({
+    const result = await publicClient.readContract({
       address: networkConfig.factoryAddress as `0x${string}`,
       abi: TokenFactoryABI,
       functionName: 'getDeployedTokens',
@@ -306,7 +323,7 @@ export async function getDeployedTokens(): Promise<string[]> {
  */
 export async function getTokenDetails(tokenAddress: string) {
   const currentNetworkId = await getCurrentNetworkId();
-  const walletClient = getWalletClient(currentNetworkId);
+  const publicClient = getPublicClient(currentNetworkId);
   
   const networkConfig = NETWORK_CONFIG[currentNetworkId as keyof typeof NETWORK_CONFIG];
   if (!networkConfig) {
@@ -314,7 +331,7 @@ export async function getTokenDetails(tokenAddress: string) {
   }
 
   try {
-    const result = await walletClient.readContract({
+    const result = await publicClient.readContract({
       address: networkConfig.factoryAddress as `0x${string}`,
       abi: TokenFactoryABI,
       functionName: 'tokenDetails',
