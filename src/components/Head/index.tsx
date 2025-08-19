@@ -29,11 +29,11 @@ const Head: React.FC = () => {
 
   // 导航菜单项
   const navItems = [
-    { key: 'marketplace', label: '广场', href: '/' },
+    { key: 'marketplace', label: '交易', href: '/swap' },
     { key: 'create', label: '创建代币', href: '/mint' },
-    { key: 'ranking', label: '排名', href: '/ranking' },
-    { key: 'advanced', label: 'Advanced', href: '/advanced' },
-    { key: 'activity', label: '活动', href: '/activity' },
+    { key: 'ranking', label: '赎回', href: '/redeem' },
+    { key: 'advanced', label: '农场', href: '/' },
+    { key: 'activity', label: '发射平台', href: '/' },
   ]
 
   // 处理语言切换

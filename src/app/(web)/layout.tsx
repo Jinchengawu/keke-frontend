@@ -25,7 +25,7 @@ export default function WebLayout({
   return (
     <div className="h-screen flex bg-slate-100 items-stretch">
         <Head/>
-        <Sidebar />
+        {/* <Sidebar /> */}
         {children}
     </div>
   );

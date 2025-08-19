@@ -2,7 +2,7 @@
  * @Author: dreamworks.cnn@gmail.com
  * @Date: 2025-08-17 21:37:14
  * @LastEditors: dreamworks.cnn@gmail.com
- * @LastEditTime: 2025-08-19 00:25:16
+ * @LastEditTime: 2025-08-19 09:04:37
  * @FilePath: /keke-frontend/src/components/Sidebar/index.tsx
  * @Description: 
  * 
@@ -26,19 +26,16 @@ export function Sidebar() {
                     
                     <li className="p-2">
                         <Link className={`${pathname === '/mint' && "text-blue-500"} flex items-end gap-2`} href="/mint">
-                            <span className="material-icons">add_circle_outline</span>
                             铸造（Mint）
                         </Link>
                     </li>
                     <li className="p-2">
                         <Link className={`${pathname === '/swap' && "text-blue-500"} flex items-end gap-2`} href="/swap">
-                            <span className="material-icons">swap_horiz</span>
                             兑换（Swap）
                         </Link>
                     </li>
                     <li className="p-2">
                         <Link className={`${pathname === '/redeem' && "text-blue-500"} flex items-end gap-2`} href="/redeem">
-                            <span className="material-icons">redeem</span>
                             赎回（Redeem）
                         </Link>
                     </li>
